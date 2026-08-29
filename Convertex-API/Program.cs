@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Adiciona suporte a Controllers
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 
 // Injeção de Dependências (Camadas)
 builder.Services.AddSingleton<IGoogleVisionClient, GoogleVisionClient>();
