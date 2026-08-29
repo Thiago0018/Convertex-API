@@ -1,0 +1,12 @@
+
+# Environment files and API keys
+.env
+.env.*
+!.env.example
+
+# Local secret/config files
+secrets/
+*.key
+*.pem
+*.credentials.json
+*.google.credentials.json
