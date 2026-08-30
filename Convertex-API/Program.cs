@@ -22,7 +22,7 @@ if (!string.IsNullOrWhiteSpace(redisUrl))
 {
     builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     {
-        ConfigurationOptions redisConfiguration = ConfigurationOptions.Parse(redisUrl);
+        ConfigurationOptions redisConfiguration = CreateRedisConfiguration(redisUrl);
         redisConfiguration.AbortOnConnectFail = false;
         return ConnectionMultiplexer.Connect(redisConfiguration);
     });
@@ -33,6 +33,33 @@ else
     builder.Services.AddSingleton<IDailyRequestCounter, DailyRequestCounter>();
 }
 builder.Services.AddScoped<IOcrService, OcrService>();
+
+static ConfigurationOptions CreateRedisConfiguration(string connectionString)
+{
+    if (!Uri.TryCreate(connectionString.Trim(), UriKind.Absolute, out Uri? redisUri) ||
+        (redisUri.Scheme != "redis" && redisUri.Scheme != "rediss") ||
+        string.IsNullOrWhiteSpace(redisUri.Host))
+    {
+        return ConfigurationOptions.Parse(connectionString);
+    }
+
+    ConfigurationOptions configuration = new()
+    {
+        Ssl = redisUri.Scheme == "rediss",
+        AbortOnConnectFail = false
+    };
+    configuration.EndPoints.Add(redisUri.Host, redisUri.Port > 0 ? redisUri.Port : 6379);
+
+    if (!string.IsNullOrEmpty(redisUri.UserInfo))
+    {
+        string[] userInfo = redisUri.UserInfo.Split(':', 2);
+        configuration.User = Uri.UnescapeDataString(userInfo[0]);
+        if (userInfo.Length == 2)
+            configuration.Password = Uri.UnescapeDataString(userInfo[1]);
+    }
+
+    return configuration;
+}
 
 // Configuração do CORS para comunicação com o React
 builder.Services.AddCors(options =>
