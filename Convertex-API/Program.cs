@@ -20,7 +20,12 @@ builder.Services.AddSingleton<IGoogleVisionClient, GoogleVisionClient>();
 string? redisUrl = builder.Configuration["REDIS_URL"];
 if (!string.IsNullOrWhiteSpace(redisUrl))
 {
-    builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisUrl));
+    builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+    {
+        ConfigurationOptions redisConfiguration = ConfigurationOptions.Parse(redisUrl);
+        redisConfiguration.AbortOnConnectFail = false;
+        return ConnectionMultiplexer.Connect(redisConfiguration);
+    });
     builder.Services.AddSingleton<IDailyRequestCounter, RedisDailyRequestCounter>();
 }
 else
