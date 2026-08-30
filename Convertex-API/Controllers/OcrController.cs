@@ -8,7 +8,7 @@ namespace MeuProjetoVision.Controllers;
 public class OcrController : ControllerBase
 {
     private const long MaxFileSize = 10 * 1024 * 1024;
-    private static readonly HashSet<string> AllowedExtensions = [".jpg", ".jpeg", ".png", ".pdf"];
+    private static readonly HashSet<string> AllowedExtensions = [".jpg", ".jpeg", ".png"];
     private readonly IOcrService _ocrService;
     private readonly IDailyRequestCounter _dailyRequestCounter;
 
@@ -28,7 +28,7 @@ public class OcrController : ControllerBase
 
         string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (file.Length > MaxFileSize || !AllowedExtensions.Contains(extension))
-            return BadRequest("Envie uma imagem JPG/PNG ou um PDF de até 10 MB.");
+            return BadRequest("Envie uma imagem JPG ou PNG de até 10 MB. Arquivos PDF ainda não são suportados.");
 
         if (!await _dailyRequestCounter.TryConsumeAsync())
             return StatusCode(StatusCodes.Status429TooManyRequests, "Limite diário de OCR atingido. Tente novamente amanhã.");

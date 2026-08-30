@@ -5,6 +5,12 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port) && int.TryParse(port, out var parsedPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{parsedPort}");
+}
+
 // Adiciona suporte a Controllers
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();

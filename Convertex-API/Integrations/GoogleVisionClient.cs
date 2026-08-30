@@ -10,42 +10,71 @@ public interface IGoogleVisionClient
 
 public class GoogleVisionClient : IGoogleVisionClient
 {
-    private readonly ImageAnnotatorClient _client;
+    private readonly ImageAnnotatorClient? _client;
 
     public GoogleVisionClient(IConfiguration configuration)
     {
         string? base64Credentials = configuration["GOOGLE_CREDENTIALS_BASE64"];
         string? jsonFilePath = configuration["GOOGLE_APPLICATION_CREDENTIALS"];
 
-        GoogleCredential credential;
+        GoogleCredential? credential = null;
 
-        if (!string.IsNullOrEmpty(base64Credentials))
+        if (!string.IsNullOrWhiteSpace(base64Credentials))
         {
-            // Usado no Render: decodifica a string Base64
             byte[] credentialBytes = Convert.FromBase64String(base64Credentials);
             string jsonCredentials = System.Text.Encoding.UTF8.GetString(credentialBytes);
             credential = CredentialFactory.FromJson<ServiceAccountCredential>(jsonCredentials).ToGoogleCredential();
         }
-        else if (!string.IsNullOrEmpty(jsonFilePath) && File.Exists(jsonFilePath))
-        {
-            // Usado localmente no Windows: lê o arquivo JSON diretamente
-            credential = CredentialFactory.FromFile<ServiceAccountCredential>(jsonFilePath).ToGoogleCredential();
-        }
         else
         {
-            throw new InvalidOperationException("Nenhuma credencial do Google Cloud foi configurada no appsettings ou variáveis de ambiente.");
+            string? resolvedFile = ResolveCredentialPath(jsonFilePath);
+            if (!string.IsNullOrWhiteSpace(resolvedFile) && File.Exists(resolvedFile))
+            {
+                credential = CredentialFactory.FromFile<ServiceAccountCredential>(resolvedFile).ToGoogleCredential();
+            }
         }
 
-        ImageAnnotatorClientBuilder builder = new()
+        if (credential is null)
+        {
+            throw new InvalidOperationException(
+                "Nenhuma credencial do Google Cloud foi configurada. Configure GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_CREDENTIALS_BASE64 ou copie o arquivo google.credentials.json para o container/app.");
+        }
+
+        _client = new ImageAnnotatorClientBuilder
         {
             Credential = credential
-        };
+        }.Build();
+    }
 
-        _client = builder.Build();
+    private static string? ResolveCredentialPath(string? configuredPath)
+    {
+        var candidatePaths = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(configuredPath))
+            candidatePaths.Add(configuredPath);
+
+        string currentDirectory = Directory.GetCurrentDirectory();
+        string baseDirectory = AppContext.BaseDirectory;
+
+        candidatePaths.Add(Path.Combine(currentDirectory, "google.credentials.json"));
+        candidatePaths.Add(Path.Combine(baseDirectory, "google.credentials.json"));
+        candidatePaths.Add(Path.Combine(currentDirectory, "..", "google.credentials.json"));
+        candidatePaths.Add(Path.Combine(baseDirectory, "..", "google.credentials.json"));
+
+        foreach (var candidate in candidatePaths.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate))
+                return candidate;
+        }
+
+        return null;
     }
 
     public async Task<string> DetectTextAsync(IFormFile file)
     {
+        if (_client is null)
+            throw new InvalidOperationException("Cliente do Google Vision não foi inicializado porque a credencial não está disponível.");
+
         using Stream stream = file.OpenReadStream();
         Image image = await Image.FromStreamAsync(stream);
 
