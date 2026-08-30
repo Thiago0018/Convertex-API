@@ -30,7 +30,9 @@ public class GoogleVisionClient : IGoogleVisionClient
             string? resolvedFile = ResolveCredentialPath(jsonFilePath);
             if (!string.IsNullOrWhiteSpace(resolvedFile) && File.Exists(resolvedFile))
             {
-                credential = CredentialFactory.FromFile<ServiceAccountCredential>(resolvedFile).ToGoogleCredential();
+                string fileContent = File.ReadAllText(resolvedFile).Trim();
+                string jsonCredentials = DecodeCredentials(fileContent);
+                credential = CredentialFactory.FromJson<ServiceAccountCredential>(jsonCredentials).ToGoogleCredential();
             }
         }
 
@@ -44,6 +46,15 @@ public class GoogleVisionClient : IGoogleVisionClient
         {
             Credential = credential
         }.Build();
+    }
+
+    private static string DecodeCredentials(string value)
+    {
+        if (value.StartsWith("{"))
+            return value;
+
+        byte[] credentialBytes = Convert.FromBase64String(value);
+        return System.Text.Encoding.UTF8.GetString(credentialBytes);
     }
 
     private static string? ResolveCredentialPath(string? configuredPath)
