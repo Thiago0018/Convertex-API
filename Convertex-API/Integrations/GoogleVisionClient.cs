@@ -21,8 +21,11 @@ public class GoogleVisionClient : IGoogleVisionClient
 
         if (!string.IsNullOrWhiteSpace(base64Credentials))
         {
-            byte[] credentialBytes = Convert.FromBase64String(base64Credentials);
-            string jsonCredentials = System.Text.Encoding.UTF8.GetString(credentialBytes);
+            string credentialValue = base64Credentials.Trim();
+            string jsonCredentials = File.Exists(credentialValue)
+                ? File.ReadAllText(credentialValue).Trim()
+                : DecodeCredentials(credentialValue);
+            jsonCredentials = DecodeCredentials(jsonCredentials);
             credential = CredentialFactory.FromJson<ServiceAccountCredential>(jsonCredentials).ToGoogleCredential();
         }
         else
@@ -50,10 +53,11 @@ public class GoogleVisionClient : IGoogleVisionClient
 
     private static string DecodeCredentials(string value)
     {
-        if (value.StartsWith("{"))
-            return value;
+        string normalizedValue = value.Trim();
+        if (normalizedValue.StartsWith("{"))
+            return normalizedValue;
 
-        byte[] credentialBytes = Convert.FromBase64String(value);
+        byte[] credentialBytes = Convert.FromBase64String(normalizedValue);
         return System.Text.Encoding.UTF8.GetString(credentialBytes);
     }
 
@@ -67,6 +71,7 @@ public class GoogleVisionClient : IGoogleVisionClient
         string currentDirectory = Directory.GetCurrentDirectory();
         string baseDirectory = AppContext.BaseDirectory;
 
+        candidatePaths.Add("/etc/secrets/credentials_b64.txt");
         candidatePaths.Add(Path.Combine(currentDirectory, "google.credentials.json"));
         candidatePaths.Add(Path.Combine(baseDirectory, "google.credentials.json"));
         candidatePaths.Add(Path.Combine(currentDirectory, "..", "google.credentials.json"));
