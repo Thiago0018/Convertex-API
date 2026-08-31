@@ -35,7 +35,28 @@ public class OcrController : ControllerBase
 
         var (fileBytes, contentType, fileName) = await _ocrService.ProcessAndExportAsync(file, format);
 
-        // Retorna o arquivo diretamente na resposta HTTP
+        return File(fileBytes, contentType, fileName);
+    }
+
+    [HttpPost("extract-illustration")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(MaxFileSize)]
+    public async Task<IActionResult> ExtractIllustrationText([FromForm] IFormFile file, [FromQuery] string format = "txt", [FromQuery] bool allowHandwriting = true)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("Nenhum arquivo enviado.");
+
+        string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (file.Length > MaxFileSize || !AllowedExtensions.Contains(extension))
+            return BadRequest("Envie uma imagem JPG ou PNG de até 10 MB com texto e/ou ilustração.");
+
+        if (!await _dailyRequestCounter.TryConsumeAsync())
+            return StatusCode(StatusCodes.Status429TooManyRequests, "Limite diário de OCR atingido. Tente novamente amanhã.");
+
+        var (fileBytes, contentType, fileName) = await _ocrService.ProcessAndExportIllustrationAsync(file, format);
+
+        Response.Headers.Append("X-OCR-Mode", allowHandwriting ? "handwriting-enabled" : "print-only");
+
         return File(fileBytes, contentType, fileName);
     }
 }
