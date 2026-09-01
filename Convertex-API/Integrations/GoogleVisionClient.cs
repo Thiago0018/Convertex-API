@@ -6,7 +6,6 @@ namespace MeuProjetoVision.Integrations;
 public interface IGoogleVisionClient
 {
     Task<string> DetectTextAsync(IFormFile file);
-    Task<string> DetectDocumentTextAsync(IFormFile file);
 }
 
 public class GoogleVisionClient : IGoogleVisionClient
@@ -89,30 +88,13 @@ public class GoogleVisionClient : IGoogleVisionClient
 
     public async Task<string> DetectTextAsync(IFormFile file)
     {
-        return await DetectTextInternalAsync(file, useDocumentText: false);
-    }
-
-    public async Task<string> DetectDocumentTextAsync(IFormFile file)
-    {
-        return await DetectTextInternalAsync(file, useDocumentText: true);
-    }
-
-    private async Task<string> DetectTextInternalAsync(IFormFile file, bool useDocumentText)
-    {
         if (_client is null)
             throw new InvalidOperationException("Cliente do Google Vision não foi inicializado porque a credencial não está disponível.");
 
         using Stream stream = file.OpenReadStream();
         Image image = await Image.FromStreamAsync(stream);
 
-        if (useDocumentText)
-        {
-            TextAnnotation documentResponse = await _client.DetectDocumentTextAsync(image);
-            return documentResponse?.Text ?? string.Empty;
-        }
-
-        IReadOnlyList<EntityAnnotation> textAnnotations = await _client.DetectTextAsync(image);
-        return string.Join(Environment.NewLine, textAnnotations.Select(x => x.Description ?? string.Empty))
-            .Trim();
+        TextAnnotation response = await _client.DetectDocumentTextAsync(image);
+        return response?.Text ?? string.Empty;
     }
 }

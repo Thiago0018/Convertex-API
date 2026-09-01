@@ -13,7 +13,6 @@ namespace MeuProjetoVision.Services;
 public interface IOcrService
 {
     Task<(byte[] FileBytes, string ContentType, string FileName)> ProcessAndExportAsync(IFormFile file, string format);
-    Task<(byte[] FileBytes, string ContentType, string FileName)> ProcessAndExportIllustrationAsync(IFormFile file, string format);
 }
 
 public class OcrService : IOcrService
@@ -34,63 +33,34 @@ public class OcrService : IOcrService
     {
         string rawText = await _visionClient.DetectTextAsync(file);
 
-        return BuildExportResult(rawText, format, "resultado-ocr");
-    }
-
-    public async Task<(byte[] FileBytes, string ContentType, string FileName)> ProcessAndExportIllustrationAsync(IFormFile file, string format)
-    {
-        string rawText = await _visionClient.DetectDocumentTextAsync(file);
-        string normalizedText = NormalizeIllustrationText(rawText);
-
-        return BuildExportResult(normalizedText, format, "resultado-ocr-ilustracao");
-    }
-
-    private static (byte[] FileBytes, string ContentType, string FileName) BuildExportResult(string rawText, string format, string baseName)
-    {
         return format.ToLower() switch
         {
             "json" => (
                 Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { extractedText = rawText }, new JsonSerializerOptions { WriteIndented = true })),
                 "application/json",
-                $"{baseName}.json"
+                "resultado-ocr.json"
             ),
             "csv" => (
                 Encoding.UTF8.GetBytes($"\"Texto Extraído\"\n\"{rawText.Replace("\"", "\"\"")}\""),
                 "text/csv",
-                $"{baseName}.csv"
+                "resultado-ocr.csv"
             ),
             "word" or "docx" => (
                 CreateWordDocument(rawText),
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                $"{baseName}.docx"
+                "resultado-ocr.docx"
             ),
             "pdf" => (
                 CreatePdfDocument(rawText),
                 "application/pdf",
-                $"{baseName}.pdf"
+                "resultado-ocr.pdf"
             ),
             _ => (
                 Encoding.UTF8.GetBytes(rawText),
                 "text/plain",
-                $"{baseName}.txt"
+                "resultado-ocr.txt"
             )
         };
-    }
-
-    private static string NormalizeIllustrationText(string rawText)
-    {
-        if (string.IsNullOrWhiteSpace(rawText))
-            return string.Empty;
-
-        string normalized = rawText
-            .Replace("\r\n", "\n")
-            .Replace('\r', '\n')
-            .Replace("\u00A0", " ")
-            .Trim();
-
-        normalized = string.Join("\n", normalized.Split('\n').Select(line => line.Trim()));
-
-        return normalized;
     }
 
     private static byte[] CreateWordDocument(string text)
