@@ -1,7 +1,0 @@
-# Local credentials
-credentials_b64.txt
-google.credentials.json
-
-# Build output
-**/bin/
-**/obj/

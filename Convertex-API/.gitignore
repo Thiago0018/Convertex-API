@@ -14,5 +14,4 @@ secrets/
 # Build output and local credential exports
 bin/
 obj/
-credentials_b64.txt
 appsettings.Development.json
