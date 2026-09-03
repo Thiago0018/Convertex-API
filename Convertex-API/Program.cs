@@ -84,7 +84,7 @@ builder.Services.AddCors(options =>
         string[] allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             ?? (builder.Environment.IsDevelopment()
-                ? ["http://localhost:3000", "http://localhost:5173"]
+                ? ["http://localhost:3000", "http://localhost:5173", "https://convertex-api.onrender.com"]
                 : []);
 
         if (allowedOrigins.Length > 0)
