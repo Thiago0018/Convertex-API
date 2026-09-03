@@ -79,26 +79,16 @@ static ConfigurationOptions CreateRedisConfiguration(string connectionString)
 // Configuração do CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
+    options.AddPolicy("AllowVercel", policy =>
     {
-        string[] allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            ?? (builder.Environment.IsDevelopment()
-                ? ["http://localhost:3000", "http://localhost:5173", "https://convertex-api.onrender.com"]
-                : []);
-
-        if (allowedOrigins.Length > 0)
-        {
-            policy.WithOrigins(allowedOrigins);
-        }
-        else
-        {
-            policy.AllowAnyOrigin();
-        }
-
-        policy.AllowAnyMethod()
-              .AllowAnyHeader()
-              .WithExposedHeaders("Content-Disposition");
+        policy.WithOrigins(
+                "https://convertex-mauve.vercel.app", // Seu domínio na Vercel
+                "http://localhost:5173",             // Vite local (Dev)
+                "http://localhost:3000"
+            )
+            .AllowAnyMethod()   // Permite POST, GET, OPTIONS, etc.
+            .AllowAnyHeader()   // Permite Content-Type, Authorization, etc.
+            .AllowCredentials(); // Se usar cookies ou headers autenticados
     });
 });
 
