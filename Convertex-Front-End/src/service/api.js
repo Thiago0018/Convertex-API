@@ -1,7 +1,10 @@
+// src/services/api.js
 import axios from 'axios';
 
-// Configuração única e centralizada da sua API
+const API_URL = import.meta.env.MODE === 'development'
+    ? 'https://convertex-api.onrender.com/api'
+    : 'http://localhost:5187/api';
+
 export const api = axios.create({
-    baseURL: 'https://convertex-api.onrender.com', // Altere para a URL do seu back-end
-    timeout: 10000,
+    baseURL: API_URL
 });

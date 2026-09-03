@@ -5,18 +5,31 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var port = Environment.GetEnvironmentVariable("PORT");
-if (!string.IsNullOrWhiteSpace(port) && int.TryParse(port, out var parsedPort))
+// Configuração explícita de servidor para DEV e PROD
+if (builder.Environment.IsDevelopment())
 {
-    builder.WebHost.UseUrls($"http://0.0.0.0:{parsedPort}");
+    // Força o Kestrel escutar estritamente no localhost da porta 5187 sem depender do HTTP.sys
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenLocalhost(5187);
+    });
+}
+else
+{
+    var port = Environment.GetEnvironmentVariable("PORT");
+    if (!string.IsNullOrWhiteSpace(port) && int.TryParse(port, out var parsedPort))
+    {
+        builder.WebHost.UseUrls($"http://0.0.0.0:{parsedPort}");
+    }
 }
 
-// Adiciona suporte a Controllers
+// Support a Controllers e ProblemDetails
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 
-// Injeção de Dependências (Camadas)
+// Injeção de Dependências (Camadas de Integração, Redis e OCR)
 builder.Services.AddSingleton<IGoogleVisionClient, GoogleVisionClient>();
+
 string? redisUrl = builder.Configuration["REDIS_URL"];
 if (!string.IsNullOrWhiteSpace(redisUrl))
 {
@@ -32,8 +45,10 @@ else
 {
     builder.Services.AddSingleton<IDailyRequestCounter, DailyRequestCounter>();
 }
+
 builder.Services.AddScoped<IOcrService, OcrService>();
 
+// Helper do Redis
 static ConfigurationOptions CreateRedisConfiguration(string connectionString)
 {
     if (!Uri.TryCreate(connectionString.Trim(), UriKind.Absolute, out Uri? redisUri) ||
@@ -61,7 +76,7 @@ static ConfigurationOptions CreateRedisConfiguration(string connectionString)
     return configuration;
 }
 
-// Configuração do CORS para comunicação com o React
+// Configuração do CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -73,16 +88,23 @@ builder.Services.AddCors(options =>
                 : []);
 
         if (allowedOrigins.Length > 0)
+        {
             policy.WithOrigins(allowedOrigins);
+        }
+        else
+        {
+            policy.AllowAnyOrigin();
+        }
 
         policy.AllowAnyMethod()
               .AllowAnyHeader()
-              .WithExposedHeaders("Content-Disposition"); // Permite que o React leia o nome do arquivo baixado
+              .WithExposedHeaders("Content-Disposition");
     });
 });
 
 var app = builder.Build();
 
+// Pipeline de Middleware
 app.UseExceptionHandler();
 app.UseCors("AllowReactApp");
 app.UseMiddleware<ApiKeyMiddleware>();
