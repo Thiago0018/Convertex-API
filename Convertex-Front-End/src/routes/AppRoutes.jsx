@@ -1,9 +1,17 @@
-import { Home } from '../pages/Home'
+import { Routes, Route } from 'react-router-dom';
+import { Home } from '../pages/Home.jsx';
 
 export function AppRoutes() {
     return (
-        <div>
-            <Home />
-        </div>
-    )
+        <Routes>
+            {/* Rota Principal (Landing Page) */}
+            <Route path="/" element={<Home />} />
+
+            {/* Rotas Secundárias */}
+            {/* Rotas secundárias ainda não implementadas */}
+
+        </Routes>
+    );
 }
+
+export default AppRoutes;
