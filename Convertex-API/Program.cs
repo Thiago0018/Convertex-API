@@ -27,19 +27,19 @@ else
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 
-// Configuração do CORS (Nome padronizado para "AllowReactApp")
+// Configuração do CORS (Aceita o domínio principal e subdomínios de preview da Vercel)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins(
-                "https://convertex-mauve.vercel.app", // Seu domínio na Vercel
-                "http://localhost:5173",             // Vite local (Dev)
-                "http://localhost:3000"
+        policy.SetIsOriginAllowed(origin =>
+                string.IsNullOrEmpty(origin) ||
+                origin.StartsWith("http://localhost") ||
+                origin.EndsWith(".vercel.app") // Libera convertex-mauve, convertex-eg0e958io, etc.
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithExposedHeaders("Content-Disposition"); // Necessário para o React ler o nome do arquivo gerado
+            .WithExposedHeaders("Content-Disposition");
     });
 });
 
