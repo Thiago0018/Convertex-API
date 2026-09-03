@@ -101,7 +101,6 @@ app.UseExceptionHandler();
 app.UseRouting();
 app.UseCors("AllowReactApp");
 
-app.UseMiddleware<ApiKeyMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
