@@ -27,6 +27,22 @@ else
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 
+// Configuração do CORS (Nome padronizado para "AllowReactApp")
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins(
+                "https://convertex-mauve.vercel.app", // Seu domínio na Vercel
+                "http://localhost:5173",             // Vite local (Dev)
+                "http://localhost:3000"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithExposedHeaders("Content-Disposition"); // Necessário para o React ler o nome do arquivo gerado
+    });
+});
+
 // Injeção de Dependências (Camadas de Integração, Redis e OCR)
 builder.Services.AddSingleton<IGoogleVisionClient, GoogleVisionClient>();
 
@@ -76,29 +92,18 @@ static ConfigurationOptions CreateRedisConfiguration(string connectionString)
     return configuration;
 }
 
-// Configuração do CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowVercel", policy =>
-    {
-        policy.WithOrigins(
-                "https://convertex-mauve.vercel.app", // Seu domínio na Vercel
-                "http://localhost:5173",             // Vite local (Dev)
-                "http://localhost:3000"
-            )
-            .AllowAnyMethod()   // Permite POST, GET, OPTIONS, etc.
-            .AllowAnyHeader()   // Permite Content-Type, Authorization, etc.
-            .AllowCredentials(); // Se usar cookies ou headers autenticados
-    });
-});
-
 var app = builder.Build();
 
-// Pipeline de Middleware
+// Pipeline de Middleware (Ordem estrita)
 app.UseExceptionHandler();
+
+// O CORS deve rodar obrigatoriamente ANTES do ApiKeyMiddleware e do UseAuthorization
+app.UseRouting();
 app.UseCors("AllowReactApp");
+
 app.UseMiddleware<ApiKeyMiddleware>();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
