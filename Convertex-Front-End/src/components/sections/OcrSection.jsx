@@ -46,18 +46,19 @@ export function OcrSection() {
     };
 
     return (
-        <main className="w-full h-full flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+        <main className="w-full h-full flex flex-col justify-center items-center md:flex-row p-4 gap-4 overflow-hidden">
             {/* Seção Esquerda: Formato */}
-            <div className="bg-amber-500 h-full w-full md:w-[50%] flex items-center justify-center rounded-lg">
+            <div className="bg-[#414853] min-h-72 mb-20 max-w-52 flex flex-col items-start p-5 shadow md:w-50 flex items-center justify-center rounded-lg">
+                <h2 className='mb-5 text-xl font-bold text-white'>Formatos de saida</h2>
                 <FormatOption onFormatChange={setFormat} />
             </div>
 
             {/* Seção Direita: Seletor + Botão de Ação */}
-            <div className="bg-amber-600 h-full w-full md:w-[50%] flex flex-col items-center justify-center rounded-lg shrink-0 p-4 gap-4">
+            <div className="bg-[#363e47] h-auto w-auto m-5 md:w-auto flex flex-col items-center justify-center rounded-lg shrink-0 p-4 gap-4 ">
                 <ImageSelectorButton onImageSelect={(res) => setFile(res?.file)} />
 
                 {message && (
-                    <span className="text-xs font-bold text-amber-100 bg-amber-900/80 px-3 py-1 rounded">
+                    <span className="text-xs font-bold text-white bg-amber-900/80 px-3 py-1 rounded">
                         {message}
                     </span>
                 )}
@@ -70,7 +71,12 @@ export function OcrSection() {
                 >
                     {loading ? 'Convertendo...' : 'Iniciar OCR'}
                 </button>
+
             </div>
+            <div className="bg-[#363e47] h-90 max-w-52 md:w-50 flex items-center justify-center rounded-lg">
+
+            </div>
+
         </main>
     );
 }

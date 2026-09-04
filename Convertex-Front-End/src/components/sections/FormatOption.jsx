@@ -27,9 +27,9 @@ export function FormatOption({ onFormatChange }) {
                     type="checkbox"
                     checked={formatoSelecionado === "pdf"}
                     onChange={() => handleCheckboxChange("pdf")}
-                    className="w-4 h-4 accent-blue-600 cursor-pointer"
+                    className="w-4 h-4 cursor-pointer"
                 />
-                <span>PDF</span>
+                <span className="text-amber-50">PDF</span>
             </div>
 
             {/* Opção DOCX */}
@@ -38,9 +38,9 @@ export function FormatOption({ onFormatChange }) {
                     type="checkbox"
                     checked={formatoSelecionado === "docx"}
                     onChange={() => handleCheckboxChange("docx")}
-                    className="w-4 h-4 accent-blue-600 cursor-pointer"
+                    className="w-4 h-4 peer-checked:bg-[##414853] cursor-pointer"
                 />
-                <span>DOCX</span>
+                <span className="text-amber-50">DOCX</span>
             </div>
 
             {/* Opção TXT */}
@@ -49,9 +49,9 @@ export function FormatOption({ onFormatChange }) {
                     type="checkbox"
                     checked={formatoSelecionado === "txt"}
                     onChange={() => handleCheckboxChange("txt")}
-                    className="w-4 h-4 accent-blue-600 cursor-pointer"
+                    className="w-4 h-4 white cursor-pointer"
                 />
-                <span>TXT</span>
+                <span className="text-amber-50">TXT</span>
             </div>
 
         </div>
