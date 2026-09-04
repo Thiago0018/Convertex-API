@@ -35,7 +35,6 @@ public class OcrController : ControllerBase
 
         var (fileBytes, contentType, fileName) = await _ocrService.ProcessAndExportAsync(file, format);
 
-        // Retorna o arquivo diretamente na resposta HTTP
         return File(fileBytes, contentType, fileName);
     }
 }

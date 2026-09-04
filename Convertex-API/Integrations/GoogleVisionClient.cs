@@ -1,5 +1,5 @@
-using Google.Cloud.Vision.V1;
 using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Vision.V1;
 
 namespace MeuProjetoVision.Integrations;
 
@@ -10,55 +10,28 @@ public interface IGoogleVisionClient
 
 public class GoogleVisionClient : IGoogleVisionClient
 {
-    private readonly ImageAnnotatorClient? _client;
+    private readonly ImageAnnotatorClient _client;
 
     public GoogleVisionClient(IConfiguration configuration)
     {
-        string? base64Credentials = configuration["GOOGLE_CREDENTIALS_BASE64"];
         string? jsonFilePath = configuration["GOOGLE_APPLICATION_CREDENTIALS"];
 
-        GoogleCredential? credential = null;
+        string? resolvedPath = ResolveCredentialPath(jsonFilePath);
 
-        if (!string.IsNullOrWhiteSpace(base64Credentials))
-        {
-            string credentialValue = base64Credentials.Trim();
-            string jsonCredentials = File.Exists(credentialValue)
-                ? File.ReadAllText(credentialValue).Trim()
-                : DecodeCredentials(credentialValue);
-            jsonCredentials = DecodeCredentials(jsonCredentials);
-            credential = CredentialFactory.FromJson<ServiceAccountCredential>(jsonCredentials).ToGoogleCredential();
-        }
-        else
-        {
-            string? resolvedFile = ResolveCredentialPath(jsonFilePath);
-            if (!string.IsNullOrWhiteSpace(resolvedFile) && File.Exists(resolvedFile))
-            {
-                string fileContent = File.ReadAllText(resolvedFile).Trim();
-                string jsonCredentials = DecodeCredentials(fileContent);
-                credential = CredentialFactory.FromJson<ServiceAccountCredential>(jsonCredentials).ToGoogleCredential();
-            }
-        }
-
-        if (credential is null)
+        if (string.IsNullOrEmpty(resolvedPath))
         {
             throw new InvalidOperationException(
-                "Nenhuma credencial do Google Cloud foi configurada. Configure GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_CREDENTIALS_BASE64 ou copie o arquivo google.credentials.json para o container/app.");
+                "Nenhum arquivo de credencial do Google Cloud foi encontrado. " +
+                "Verifique a variável GOOGLE_APPLICATION_CREDENTIALS ou a presença do arquivo google.credentials.json.");
         }
+
+        GoogleCredential credential = CredentialFactory.FromFile<ServiceAccountCredential>(resolvedPath)
+            .ToGoogleCredential();
 
         _client = new ImageAnnotatorClientBuilder
         {
             Credential = credential
         }.Build();
-    }
-
-    private static string DecodeCredentials(string value)
-    {
-        string normalizedValue = value.Trim();
-        if (normalizedValue.StartsWith("{"))
-            return normalizedValue;
-
-        byte[] credentialBytes = Convert.FromBase64String(normalizedValue);
-        return System.Text.Encoding.UTF8.GetString(credentialBytes);
     }
 
     private static string? ResolveCredentialPath(string? configuredPath)
@@ -71,11 +44,8 @@ public class GoogleVisionClient : IGoogleVisionClient
         string currentDirectory = Directory.GetCurrentDirectory();
         string baseDirectory = AppContext.BaseDirectory;
 
-        candidatePaths.Add("/etc/secrets/credentials_b64.txt");
         candidatePaths.Add(Path.Combine(currentDirectory, "google.credentials.json"));
         candidatePaths.Add(Path.Combine(baseDirectory, "google.credentials.json"));
-        candidatePaths.Add(Path.Combine(currentDirectory, "..", "google.credentials.json"));
-        candidatePaths.Add(Path.Combine(baseDirectory, "..", "google.credentials.json"));
 
         foreach (var candidate in candidatePaths.Distinct(StringComparer.OrdinalIgnoreCase))
         {
@@ -88,9 +58,6 @@ public class GoogleVisionClient : IGoogleVisionClient
 
     public async Task<string> DetectTextAsync(IFormFile file)
     {
-        if (_client is null)
-            throw new InvalidOperationException("Cliente do Google Vision não foi inicializado porque a credencial não está disponível.");
-
         using Stream stream = file.OpenReadStream();
         Image image = await Image.FromStreamAsync(stream);
 
