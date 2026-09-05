@@ -8,12 +8,10 @@ import { OcrSection } from '../components/sections/OcrSection';
 export function Home() {
     return (
         // 1. Grid com 3 linhas: Header (auto), Meio (1fr = o que sobrar), Footer (auto)
-        <div className="grid h-screen w-full grid-rows-[auto_1fr_auto] bg-[#363e47] overflow-auto">
+        <div className=" bg-[#363e47] overflow-auto md: flex-col w-full h-dvh ">
             <Header />
             <OcrSection />
-
             <Footer />
-
         </div>
     );
 }

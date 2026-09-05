@@ -48,7 +48,7 @@ export function OcrSection() {
     return (
         <main className="w-full h-full flex flex-col justify-center items-center md:flex-row p-4 gap-4 overflow-hidden">
             {/* Seção Esquerda: Formato */}
-            <div className="bg-[#414853] min-h-72 mb-20 max-w-52 flex flex-col items-start p-5 shadow md:w-50 flex items-center justify-center rounded-lg">
+            <div className="bg-[#414853] min-h-60 max-w-52 flex flex-col items-start gap-3 p-5 shadow md:mb-20">
                 <h2 className='mb-5 text-xl font-bold text-white'>Formatos de saida</h2>
                 <FormatOption onFormatChange={setFormat} />
             </div>
