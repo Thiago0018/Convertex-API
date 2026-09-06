@@ -27,7 +27,7 @@ export function OcrSection() {
             // O TypeScript garante que 'file' não é null aqui devido aos ifs anteriores
             const blobData = await imageService.uploadToApi(file, format);
 
-            const downloadUrl = window.URL.createObjectURL(blobData);
+            const downloadUrl = window.URL.createObjectURL(new Blob([blobData]));
             const link = document.createElement('a');
             link.href = downloadUrl;
             link.setAttribute('download', `ocr-resultado.${format}`);

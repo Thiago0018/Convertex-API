@@ -1,4 +1,5 @@
 import { useRef, useState, type ButtonHTMLAttributes, type ChangeEvent } from 'react';
+import { imageService } from '../../service/imageService';
 
 export interface ImageSelectedResult {
     file: File;
@@ -47,16 +48,15 @@ export function ImageSelectorButton({
     };
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+        const result = imageService.processImageSelection(event);
 
-        if (!file) {
+        if (!result) {
             onImageSelect(null);
             return;
         }
 
-        const previewUrl = URL.createObjectURL(file);
-        setSelectedImage(previewUrl);
-        onImageSelect({ file, previewUrl });
+        setSelectedImage(result.imageUrl);
+        onImageSelect({ file: result.file, previewUrl: result.imageUrl });
     };
 
     return (
@@ -65,7 +65,7 @@ export function ImageSelectorButton({
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept="image/*"
+                accept="image/jpeg,image/png"
                 className="hidden"
             />
 
@@ -93,7 +93,7 @@ export function ImageSelectorButton({
                             </svg>
                         </div>
                         <span className="font-semibold text-center leading-tight">{label}</span>
-                        <span className="text-xs text-slate-500 font-normal group-hover:text-slate-400">PNG, JPG ou WEBP</span>
+                        <span className="text-xs text-slate-500 font-normal group-hover:text-slate-400">PNG ou JPG</span>
                     </>
                 )}
             </button>
