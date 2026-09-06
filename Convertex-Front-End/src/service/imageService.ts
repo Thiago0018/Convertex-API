@@ -26,7 +26,6 @@ export const imageService = {
 
         const response = await api.post<Blob>('/ocr/extract', formData, {
             params: { format },
-            headers: { 'Content-Type': 'multipart/form-data' },
             responseType: 'blob',
         });
 

@@ -11,5 +11,6 @@ const API_URL = import.meta.env.VITE_API_URL || (isLocalhost
 console.log('[CONVERTEX] Conectando API em:', API_URL);
 
 export const api = axios.create({
-    baseURL: API_URL
+    baseURL: API_URL,
+    timeout: 15000,
 });

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { imageService } from '../../service/imageService';
 import { FormatOption, FileFormat } from './FormatOption';
 import { ImageSelectorButton } from '../ui/ImageSelectorButton';
@@ -39,7 +40,18 @@ export function OcrSection() {
             setMessage('Sucesso!');
         } catch (error) {
             console.error(error);
-            setMessage('Erro ao converter.');
+
+            if (axios.isAxiosError(error)) {
+                if (!error.response) {
+                    setMessage('Não foi possível conectar à API local em http://localhost:5187.');
+                } else if (error.response.data instanceof Blob) {
+                    setMessage(await error.response.data.text());
+                } else {
+                    setMessage(error.response.data?.message || 'A API recusou a conversão.');
+                }
+            } else {
+                setMessage('Erro ao converter.');
+            }
         } finally {
             setLoading(false);
         }
