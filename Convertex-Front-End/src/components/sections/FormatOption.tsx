@@ -1,18 +1,23 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-// Recebemos a função 'onFormatChange' para avisar a Home qual formato foi marcado
-export function FormatOption({ onFormatChange }) {
-    // Estado interno para saber qual formato está selecionado no momento
-    const [formatoSelecionado, setFormatoSelecionado] = useState("");
+// 1. Criamos um "Type Union" (similar a um Enum no C#) para restringir os valores aceitos
+export type FileFormat = 'pdf' | 'docx' | 'txt' | '';
 
-    // Função que roda toda vez que uma caixinha é clicada
-    const handleCheckboxChange = (formato) => {
-        // Se clicar na que já está marcada, desmarca. Se não, marca a nova.
-        const novoFormato = formatoSelecionado === formato ? "" : formato;
+// 2. Definimos a Interface de Props (o contrato que o componente exige)
+interface FormatOptionProps {
+    onFormatChange?: (format: FileFormat) => void;
+}
+
+export function FormatOption({ onFormatChange }: FormatOptionProps) {
+    // 3. Tipamos o estado com a nossa union FileFormat
+    const [formatoSelecionado, setFormatoSelecionado] = useState<FileFormat>("");
+
+    // 4. Tipamos o parâmetro de entrada da função
+    const handleCheckboxChange = (formato: FileFormat) => {
+        const novoFormato: FileFormat = formatoSelecionado === formato ? "" : formato;
 
         setFormatoSelecionado(novoFormato);
 
-        // Se o componente pai passou a função, avisamos ele sobre a mudança
         if (onFormatChange) {
             onFormatChange(novoFormato);
         }
@@ -38,7 +43,7 @@ export function FormatOption({ onFormatChange }) {
                     type="checkbox"
                     checked={formatoSelecionado === "docx"}
                     onChange={() => handleCheckboxChange("docx")}
-                    className="w-4 h-4 peer-checked:bg-[##414853] cursor-pointer"
+                    className="w-4 h-4 cursor-pointer"
                 />
                 <span className="text-amber-50">DOCX</span>
             </div>
@@ -49,7 +54,7 @@ export function FormatOption({ onFormatChange }) {
                     type="checkbox"
                     checked={formatoSelecionado === "txt"}
                     onChange={() => handleCheckboxChange("txt")}
-                    className="w-4 h-4 white cursor-pointer"
+                    className="w-4 h-4 cursor-pointer"
                 />
                 <span className="text-amber-50">TXT</span>
             </div>

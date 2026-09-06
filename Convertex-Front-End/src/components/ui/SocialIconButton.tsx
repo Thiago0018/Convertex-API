@@ -1,33 +1,60 @@
-// src/components/ui/SocialIconButton.jsx
-import React from 'react';
+import { ComponentPropsWithoutRef } from 'react';
+
+// 1. Tipos Union (similar a Enums/Valores Aceitos no C#)
+export type SocialIconType = 'github' | 'linkedin' | 'gmail';
+export type SocialButtonSize = 'sm' | 'md' | 'lg';
+export type SocialButtonVariant = 'primary' | 'github' | 'linkedin' | 'gmail';
+
+// 2. Props Base do Componente
+interface BaseSocialIconButtonProps {
+    icon?: SocialIconType | string;
+    customSrc?: string;
+    alt?: string;
+    size?: SocialButtonSize;
+    variant?: SocialButtonVariant;
+    className?: string;
+}
+
+// 3. Tipagem Condicional Segura (Polimorfismo Anchor vs Button)
+type SocialIconButtonAsAnchor = BaseSocialIconButtonProps &
+    ComponentPropsWithoutRef<'a'> & {
+        href: string;
+    };
+
+type SocialIconButtonAsButton = BaseSocialIconButtonProps &
+    ComponentPropsWithoutRef<'button'> & {
+        href?: never;
+    };
+
+export type SocialIconButtonProps = SocialIconButtonAsAnchor | SocialIconButtonAsButton;
 
 export function SocialIconButton({
-    icon,         // 'github' | 'linkedin' | 'gmail'
-    customSrc,    // URL para imagem/ícone customizado (se não usar os ícones padrão)
-    href,         // Link para redirecionar (ex: "https://github.com/SeuUsuario")
-    onClick,      // Função JS customizada
+    icon,
+    customSrc,
+    href,
+    onClick,
     alt = 'Social Link',
-    size = 'md',  // 'sm' | 'md' | 'lg'
+    size = 'md',
     variant = 'primary',
     className = '',
     ...props
-}) {
+}: SocialIconButtonProps) {
 
     // 1. Mapeamento de Tamanhos
-    const sizes = {
+    const sizes: Record<SocialButtonSize, string> = {
         sm: "w-9 h-9 text-xs",
         md: "w-11 h-11 text-sm",
         lg: "w-14 h-14 text-base"
     };
 
-    const iconSizes = {
+    const iconSizes: Record<SocialButtonSize, string> = {
         sm: "w-4 h-4",
         md: "w-5 h-5",
         lg: "w-6 h-6"
     };
 
     // 2. Variações de Cores e Glows no Hover
-    const variants = {
+    const variants: Record<SocialButtonVariant, string> = {
         primary: "bg-slate-900 text-slate-300 border border-slate-800 hover:border-blue-500 hover:text-blue-400 hover:shadow-lg hover:shadow-blue-500/25",
         github: "bg-slate-900 text-slate-200 border border-slate-800 hover:border-purple-500 hover:text-white hover:shadow-lg hover:shadow-purple-500/25",
         linkedin: "bg-slate-900 text-slate-300 border border-slate-800 hover:border-sky-500 hover:text-sky-400 hover:shadow-lg hover:shadow-sky-500/25",
@@ -36,7 +63,6 @@ export function SocialIconButton({
 
     // 3. Ícones SVG Nativos (GitHub, LinkedIn, Gmail)
     const renderIcon = () => {
-        // Opção A: Imagem Customizada enviada via 'customSrc'
         if (customSrc) {
             return (
                 <img
@@ -47,7 +73,6 @@ export function SocialIconButton({
             );
         }
 
-        // Opção B: Ícones padrão predefinidos
         switch (icon?.toLowerCase()) {
             case 'github':
                 return (
@@ -72,8 +97,8 @@ export function SocialIconButton({
         }
     };
 
-    // Se a prop 'variant' não for passada, tenta associar automaticamente ao nome do ícone
-    const currentVariant = variants[variant] || variants[icon?.toLowerCase()] || variants.primary;
+    const iconKey = icon?.toLowerCase() as SocialButtonVariant;
+    const currentVariant = variants[variant] || variants[iconKey] || variants.primary;
 
     const combinedClasses = `
     rounded-full flex items-center justify-center select-none
@@ -84,7 +109,6 @@ export function SocialIconButton({
     ${className}
   `;
 
-    // Se 'href' for informado, renderiza como link <a>. Senão, como <button>
     if (href) {
         return (
             <a
@@ -93,8 +117,8 @@ export function SocialIconButton({
                 rel="noopener noreferrer"
                 className={combinedClasses}
                 aria-label={alt || icon}
-                onClick={onClick}
-                {...props}
+                onClick={onClick as ComponentPropsWithoutRef<'a'>['onClick']}
+                {...(props as ComponentPropsWithoutRef<'a'>)}
             >
                 {renderIcon()}
             </a>
@@ -104,10 +128,10 @@ export function SocialIconButton({
     return (
         <button
             type="button"
-            onClick={onClick}
+            onClick={onClick as ComponentPropsWithoutRef<'button'>['onClick']}
             className={combinedClasses}
             aria-label={alt || icon}
-            {...props}
+            {...(props as ComponentPropsWithoutRef<'button'>)}
         >
             {renderIcon()}
         </button>

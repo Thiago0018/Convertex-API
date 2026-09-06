@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { FormatOption } from './FormatOption';
-import { ImageSelectorButton } from '../ui/ImageSelectorButton';
+import { useState } from 'react';
 import { imageService } from '../../service/imageService';
-
+import { FormatOption, FileFormat } from './FormatOption';
+import { ImageSelectorButton } from '../ui/ImageSelectorButton';
 
 export function OcrSection() {
-    const [file, setFile] = useState(null);
-    const [format, setFormat] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
+    // Em JS era useState(null). No TS informamos que o estado pode ser um File ou null:
+    const [file, setFile] = useState<File | null>(null);
+    const [format, setFormat] = useState<FileFormat>('');
+    const [loading, setLoading] = useState<boolean>(false);
+    const [message, setMessage] = useState<string>('');
 
     const handleExecuteOcr = async () => {
         if (!file) {
@@ -24,10 +24,10 @@ export function OcrSection() {
             setLoading(true);
             setMessage('Processando...');
 
+            // O TypeScript garante que 'file' não é null aqui devido aos ifs anteriores
             const blobData = await imageService.uploadToApi(file, format);
 
-            // Download do arquivo retornado pelo .NET
-            const downloadUrl = window.URL.createObjectURL(new Blob([blobData]));
+            const downloadUrl = window.URL.createObjectURL(blobData);
             const link = document.createElement('a');
             link.href = downloadUrl;
             link.setAttribute('download', `ocr-resultado.${format}`);
@@ -46,16 +46,16 @@ export function OcrSection() {
     };
 
     return (
-        <main className="w-full h-full flex flex-col justify-center items-center md:flex-row p-4 gap-4 overflow-hidden">
+        <main className="w-full flex-1 flex flex-col justify-center items-center md:flex-row p-4 gap-4 overflow-y-auto">
             {/* Seção Esquerda: Formato */}
-            <div className="bg-[#414853] min-h-60 max-w-52 flex flex-col items-start gap-3 p-5 shadow md:mb-20">
+            <div className="bg-[#414853] min-h-60 max-w-52 flex flex-col items-start gap-3 p-5 rounded shadow md:mb-20 whitespace-nowrap">
                 <h2 className='mb-5 text-xl font-bold text-white'>Formatos de saida</h2>
                 <FormatOption onFormatChange={setFormat} />
             </div>
 
             {/* Seção Direita: Seletor + Botão de Ação */}
             <div className="bg-[#363e47] h-auto w-auto m-5 md:w-auto flex flex-col items-center justify-center rounded-lg shrink-0 p-4 gap-4 ">
-                <ImageSelectorButton onImageSelect={(res) => setFile(res?.file)} />
+                <ImageSelectorButton onImageSelect={(res) => setFile(res?.file ?? null)} />
 
                 {message && (
                     <span className="text-xs font-bold text-white bg-amber-900/80 px-3 py-1 rounded">
@@ -73,10 +73,10 @@ export function OcrSection() {
                 </button>
 
             </div>
-            <div className="bg-[#363e47] h-90 max-w-52 md:w-50 flex items-center justify-center rounded-lg">
 
+            <div className="h-auto md:min-h-60 w-auto md:min-w-50 flex flex-col items-start gap-3 p-5 rounded-2xl  md:mb-20 whitespace-nowrap">
+                {/* div de armonia de conteúdo*/}
             </div>
-
         </main>
     );
 }

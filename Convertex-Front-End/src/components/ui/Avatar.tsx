@@ -1,26 +1,42 @@
-// src/components/ui/Avatar.jsx
+import { ComponentPropsWithoutRef } from 'react';
+
+// 1. Tipos de Union para garantir validação estrita dos valores aceitos
+export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
+export type AvatarStatus = 'online' | 'offline' | 'busy' | 'away';
+export type AvatarVariant = 'primary' | 'gradient' | 'secondary' | 'accent';
+
+// 2. Interface de Props herdando os atributos de uma HTMLDivElement
+export interface AvatarProps extends ComponentPropsWithoutRef<'div'> {
+    src?: string;
+    alt?: string;
+    name?: string;
+    size?: AvatarSize;
+    status?: AvatarStatus;
+    variant?: AvatarVariant;
+    className?: string;
+}
+
 export function Avatar({
-    src,                  // URL da foto de perfil (opcional)
-    alt = 'Avatar',       // Texto alternativo
-    name,                 // Nome do usuário (para gerar as iniciais se não houver foto)
-    size = 'md',          // 'sm' | 'md' | 'lg' | 'xl'
-    status,               // 'online' | 'offline' | 'busy' | 'away' (opcional)
-    variant = 'primary',  // Estilo da borda/fundo
+    src,
+    alt = 'Avatar',
+    name,
+    size = 'md',
+    status,
+    variant = 'primary',
     className = '',
     onClick,
     ...props
-}) {
+}: AvatarProps) {
 
-    // 1. Dicionário de Tamanhos
-    const sizes = {
+    // 1. Dicionários fortemente tipados com Record<K, V>
+    const sizes: Record<AvatarSize, string> = {
         sm: "w-8 h-8 text-xs",
         md: "w-10 h-10 text-sm",
         lg: "w-14 h-14 text-base",
         xl: "w-20 h-20 text-xl"
     };
 
-    // Tamanhos do indicador de status (bolinha verde/cinza)
-    const statusSizes = {
+    const statusSizes: Record<AvatarSize, string> = {
         sm: "w-2.5 h-2.5 border",
         md: "w-3 h-3 border-2",
         lg: "w-4 h-4 border-2",
@@ -28,7 +44,7 @@ export function Avatar({
     };
 
     // 2. Estilos de Borda e Fundo
-    const variants = {
+    const variants: Record<AvatarVariant, string> = {
         primary: "bg-slate-800 text-blue-400 border-2 border-blue-500/30",
         gradient: "bg-slate-900 text-white p-[2px] bg-gradient-to-tr from-blue-600 to-cyan-400",
         secondary: "bg-slate-800 text-slate-200 border border-slate-700",
@@ -36,41 +52,32 @@ export function Avatar({
     };
 
     // 3. Cores dos Status
-    const statusColors = {
+    const statusColors: Record<AvatarStatus, string> = {
         online: "bg-emerald-500 border-slate-950",
         offline: "bg-slate-500 border-slate-950",
         busy: "bg-rose-500 border-slate-950",
         away: "bg-amber-500 border-slate-950"
     };
 
-    // Função auxiliar para extrair até 2 iniciais a partir do nome
-    const getInitials = (fullName) => {
+    // Função auxiliar tipada para extrair iniciais
+    const getInitials = (fullName: string): string => {
         if (!fullName) return '?';
         const names = fullName.trim().split(' ');
         if (names.length === 1) return names[0].charAt(0).toUpperCase();
         return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
     };
 
-    const isClickable = Boolean(onClick);
-
     return (
         <div className={`relative inline-block select-none ${className}`}>
             <div
                 onClick={onClick}
-                /* 
-                  CLASSES DE HOVER E CLIQUE:
-                  - cursor-pointer: cursor de mãozinha
-                  - transition-transform duration-200: animação suave
-                  - hover:scale-105: cresce ao passar o mouse
-                  - active:scale-95: afunda ao clicar
-                */
                 className={`
-          relative rounded-full flex items-center justify-center font-bold overflow-hidden
-          cursor-pointer transition-all duration-200 ease-out
-          hover:scale-105 active:scale-95
-          ${sizes[size]} 
-          ${variants[variant]}
-          `}
+                    relative rounded-full flex items-center justify-center font-bold overflow-hidden
+                    cursor-pointer transition-all duration-200 ease-out
+                    hover:scale-105 active:scale-95
+                    ${sizes[size]} 
+                    ${variants[variant]}
+                `}
                 {...props}
             >
                 {/* Caso 1: Foto passada por URL */}
@@ -95,10 +102,10 @@ export function Avatar({
             {status && (
                 <span
                     className={`
-            absolute bottom-0 right-0 rounded-full
-            ${statusSizes[size]} 
-            ${statusColors[status]}
-          `}
+                        absolute bottom-0 right-0 rounded-full
+                        ${statusSizes[size]} 
+                        ${statusColors[status]}
+                    `}
                 />
             )}
         </div>
