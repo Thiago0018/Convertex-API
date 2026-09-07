@@ -1,6 +1,7 @@
 import { useRef, useState, type ButtonHTMLAttributes, type ChangeEvent } from 'react';
 import { imageService } from '../../service/imageService';
 
+//Diz que quem usa-la vai ter que devolver dois arquivos (file e string)
 export interface ImageSelectedResult {
     file: File;
     previewUrl: string;
