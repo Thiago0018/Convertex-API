@@ -5,6 +5,7 @@
     --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* Animação do Scanner */
 @keyframes scan {
 
     0%,
@@ -15,6 +16,10 @@
     50% {
         top: 98%;
     }
+}
+
+.animate-scan {
+    animation: scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .animate-scan {

@@ -8,7 +8,6 @@ export function Header() {
 
     return (
         <header className="Header shrink-0">
-            {/* Adicionado flex-col para o menu cair para baixo no celular se aberto */}
             <div className="flex min-h-20 w-full flex-col items-stretch justify-between bg-[#242d3e] sm:flex-row">
 
                 {/* Linha do Logo + Botão Hambúrguer */}
@@ -38,7 +37,6 @@ export function Header() {
                     <ClickableText href="/" variant="default">feedback</ClickableText>
                     <ClickableText href="/" variant="default">info Projeto</ClickableText>
                     <ClickableText href="/" variant="default">tutorial</ClickableText>
-                    <Avatar name="John Doe" status="online" />
                 </div>
 
             </div>
