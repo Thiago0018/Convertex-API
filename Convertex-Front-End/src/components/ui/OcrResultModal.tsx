@@ -94,7 +94,7 @@ export function OcrResultModal({
                 <div className="bg-slate-950/60 px-4 py-2 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
                     <span className="font-medium">Edite o texto extraído abaixo antes de copiar ou baixar</span>
                     <div className="flex items-center gap-3 font-mono">
-                        <span><strong className="text-blue-400">{wordCount}</strong> palavras</span>
+                        <span className="font-mono text-cyan-400 font-semibold">{wordCount}</span>
                         <span>•</span>
                         <span><strong className="text-cyan-400">{charCount}</strong> caracteres</span>
                     </div>
@@ -139,6 +139,6 @@ export function OcrResultModal({
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 }

@@ -14,7 +14,7 @@ const FORMAT_TAGS: Record<string, string> = {
 
 export function OcrHistorySection({ files, onSelectFile, onClearHistory }: OcrHistorySectionProps) {
     return (
-        <aside className="bg-[#414853] min-h-60 w-65 flex flex-col items-start gap-1 p-5 rounded-2xl shadow md:mb-20 md:scale-80">
+        <aside className="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 min-h-60 w-full md:w-64 flex flex-col items-start gap-2 p-6 rounded-2xl shadow-2xl md:mb-12 transition-all duration-300 hover:border-slate-600/60">
             {/* CABEÇALHO DA SEÇÃO COM BOTÃO DE LIMPEZA */}
             <div className="flex items-center justify-between w-full mb-2">
                 <h2 className="text-xl font-bold text-white">Arquivos recentes</h2>

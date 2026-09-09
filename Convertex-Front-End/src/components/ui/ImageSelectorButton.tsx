@@ -14,6 +14,7 @@ interface ImageSelectorButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonE
     preview?: boolean;
     size?: ImageSelectorSize;
     variant?: ImageSelectorVariant;
+    loading?: boolean; // <--- ADICIONADO AQUI
 }
 
 const SIZES: Record<ImageSelectorSize, string> = {
@@ -40,6 +41,7 @@ export function ImageSelectorButton({
     preview = true,
     size = 'lg',
     variant = 'primary',
+    loading = false, // <--- ADICIONADO AQUI (Valor padrão false)
     className = '',
     ...props
 }: ImageSelectorButtonProps) {
@@ -55,7 +57,6 @@ export function ImageSelectorButton({
         };
     }, [selectedImage]);
 
-    // Função central para processar o arquivo (seja por clique ou drag & drop)
     const handleProcessFile = (file: File | undefined) => {
         if (!file) {
             setSelectedImage(null);
@@ -82,7 +83,6 @@ export function ImageSelectorButton({
         handleProcessFile(file);
     };
 
-    // --- Handlers de Drag and Drop ---
     const handleDragOver = (event: DragEvent<HTMLButtonElement>) => {
         event.preventDefault();
         event.stopPropagation();
@@ -105,6 +105,7 @@ export function ImageSelectorButton({
     };
 
     const handleButtonClick = () => {
+        if (loading) return;
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
             fileInputRef.current.click();
@@ -127,6 +128,7 @@ export function ImageSelectorButton({
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
+                disabled={loading}
                 className={`relative rounded-2xl flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-all duration-200 ease-out overflow-hidden hover:scale-105 active:scale-95 group ${SIZES[size]
                     } ${VARIANTS[variant]} ${isDragging
                         ? 'border-blue-400! bg-blue-950/40! scale-105! ring-4 ring-blue-500/30'
@@ -137,12 +139,28 @@ export function ImageSelectorButton({
                 {selectedImage && preview ? (
                     <>
                         <img src={selectedImage} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                        <div className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white p-2 text-center">
-                            <svg className="w-8 h-8 mb-1 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            <span className="text-xs font-semibold">Trocar Imagem</span>
-                        </div>
+
+                        {/* EFEEITO DE SCANNER LUMINOSO (RENDERIZADO SE LOADING FOR TRUE) */}
+                        {loading ? (
+                            <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[1px] rounded-xl overflow-hidden flex flex-col items-center justify-center">
+                                {/* Linha Laser de Varredura */}
+                                <div className="absolute left-0 right-0 h-1 bg-linear-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] animate-scan z-10" />
+
+                                {/* Badge Central indicando o escaneamento */}
+                                <span className="bg-slate-900/90 text-cyan-300 text-xs font-mono font-bold px-3 py-1.5 rounded-full border border-cyan-500/40 shadow-lg z-20 flex items-center gap-2 animate-pulse">
+                                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                                    LENDO IMAGEM...
+                                </span>
+                            </div>
+                        ) : (
+                            /* Overlay Normal de Troca de Imagem no Hover */
+                            <div className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white p-2 text-center">
+                                <svg className="w-8 h-8 mb-1 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                </svg>
+                                <span className="text-xs font-semibold">Trocar Imagem</span>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <>
