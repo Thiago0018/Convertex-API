@@ -2,11 +2,13 @@ import { useOcr } from '../../hooks/useOcr';
 import { FormatOption } from '../ui/FormatOption';
 import { ImageSelectorButton } from '../ui/ImageSelectorButton';
 import { OcrResultModal } from '../ui/OcrResultModal';
+import { OcrHistorySection } from '../sections/OcrHistorySection';
 
 export function OcrSection() {
     const {
         setFile,
         format,
+        fileUrl,
         setFormat,
         loading,
         message,
@@ -15,6 +17,8 @@ export function OcrSection() {
         executeOcr,
         downloadFile,
         closeModal,
+        recentFiles,
+        openHistoryItem,
     } = useOcr();
 
     return (
@@ -31,38 +35,58 @@ export function OcrSection() {
             </div>
 
             {/* Seção Central */}
-            <div className="bg-[#363e47] h-auto w-auto m-5 flex flex-col items-center justify-center rounded-lg shrink-0 p-4 gap-4">
+            <div className="bg-[#363e47] h-auto w-auto m-5 flex flex-col  items-center justify-center rounded-lg shrink-0 p-4 gap-4">
+
                 <ImageSelectorButton onImageSelect={(res) => setFile(res?.file ?? null)} />
 
                 {message && (
+
                     <span className="text-xs font-bold text-amber-100 bg-amber-900/90 px-3 py-1 rounded border border-amber-700">
+
                         {message}
+
                     </span>
                 )}
 
                 <button
+
                     type="button"
+
                     onClick={executeOcr}
+
                     disabled={loading}
+
                     className={`cursor-pointer px-6 py-2.5 rounded-xl font-bold transition-all duration-200 shadow-lg ${loading
-                            ? 'bg-slate-700 cursor-not-allowed opacity-50'
-                            : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95 hover:scale-105'
+
+                        ? 'bg-slate-700 cursor-not-allowed opacity-50'
+
+                        : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95 hover:scale-105'
+
                         }`}
+
                 >
-                    {loading ? 'Convertendo...' : 'Iniciar OCR'}
+                    {loading ? 'Convertendo...' : 'CONVERTER'}
+
                 </button>
             </div>
 
-            <div className="h-auto md:min-h-60 w-auto md:min-w-50 whitespace-nowrap md:mb-20" />
 
-            {/* Modal */}
+
+            {/* seção de arquivos recentes */}
+            <OcrHistorySection
+                files={recentFiles}
+                onSelectFile={openHistoryItem} />
+
+            {/*Janela de fluante do texto convertido*/}
             <OcrResultModal
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 extractedText={extractedText}
                 onDownload={downloadFile}
                 format={format}
+                fileUrl={fileUrl}
             />
+
         </main>
     );
 }

@@ -1,7 +1,6 @@
-import { useRef, useState, type ButtonHTMLAttributes, type ChangeEvent } from 'react';
+import { useRef, useState, useEffect, type ButtonHTMLAttributes, type ChangeEvent } from 'react';
 import { imageService } from '../../service/imageService';
 
-//Diz que quem usa-la vai ter que devolver dois arquivos (file e string)
 export interface ImageSelectedResult {
     file: File;
     previewUrl: string;
@@ -18,6 +17,25 @@ interface ImageSelectorButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonE
     variant?: ImageSelectorVariant;
 }
 
+// 1. Dicionários estáticos movidos para FORA do componente
+const SIZES: Record<ImageSelectorSize, string> = {
+    md: 'w-48 h-48 text-sm',
+    lg: 'w-64 h-64 text-base',
+    xl: 'w-80 h-80 text-lg',
+};
+
+const ICON_SIZES: Record<ImageSelectorSize, string> = {
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16',
+};
+
+const VARIANTS: Record<ImageSelectorVariant, string> = {
+    primary: 'bg-slate-900/80 border-2 border-dashed border-slate-700 text-slate-300 hover:border-blue-500 hover:text-blue-400 hover:shadow-xl hover:shadow-blue-500/20 hover:bg-slate-900',
+    gradient: 'bg-slate-900/80 border-2 border-dashed border-blue-500/50 text-slate-200 hover:border-cyan-400 hover:shadow-xl hover:shadow-cyan-500/25 hover:bg-slate-900',
+    accent: 'bg-slate-900/80 border-2 border-dashed border-cyan-500/50 text-cyan-400 hover:border-cyan-300 hover:shadow-xl hover:shadow-cyan-500/20',
+};
+
 export function ImageSelectorButton({
     onImageSelect,
     label = 'Selecionar Imagem',
@@ -30,34 +48,39 @@ export function ImageSelectorButton({
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const sizes: Record<ImageSelectorSize, string> = {
-        md: 'w-48 h-48 text-sm',
-        lg: 'w-64 h-64 text-base',
-        xl: 'w-80 h-80 text-lg',
-    };
-
-    const iconSizes: Record<ImageSelectorSize, string> = {
-        md: 'w-8 h-8',
-        lg: 'w-12 h-12',
-        xl: 'w-16 h-16',
-    };
-
-    const variants: Record<ImageSelectorVariant, string> = {
-        primary: 'bg-slate-900/80 border-2 border-dashed border-slate-700 text-slate-300 hover:border-blue-500 hover:text-blue-400 hover:shadow-xl hover:shadow-blue-500/20 hover:bg-slate-900',
-        gradient: 'bg-slate-900/80 border-2 border-dashed border-blue-500/50 text-slate-200 hover:border-cyan-400 hover:shadow-xl hover:shadow-cyan-500/25 hover:bg-slate-900',
-        accent: 'bg-slate-900/80 border-2 border-dashed border-cyan-500/50 text-cyan-400 hover:border-cyan-300 hover:shadow-xl hover:shadow-cyan-500/20',
-    };
+    // 2. Limpeza automática da memória RAM (revokeObjectURL)
+    useEffect(() => {
+        return () => {
+            if (selectedImage) {
+                URL.revokeObjectURL(selectedImage);
+            }
+        };
+    }, [selectedImage]);
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const result = imageService.processImageSelection(event);
 
         if (!result) {
+            setSelectedImage(null);
             onImageSelect(null);
             return;
         }
 
+        // Libera a imagem anterior da memória antes de atribuir a nova
+        if (selectedImage) {
+            URL.revokeObjectURL(selectedImage);
+        }
+
         setSelectedImage(result.imageUrl);
         onImageSelect({ file: result.file, previewUrl: result.imageUrl });
+    };
+
+    const handleButtonClick = () => {
+        // Reseta o valor do input para permitir selecionar o mesmo arquivo novamente se necessário
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+            fileInputRef.current.click();
+        }
     };
 
     return (
@@ -72,8 +95,8 @@ export function ImageSelectorButton({
 
             <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative rounded-2xl flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-all duration-200 ease-out overflow-hidden hover:scale-105 active:scale-95 group ${sizes[size]} ${variants[variant]}`}
+                onClick={handleButtonClick}
+                className={`relative rounded-2xl flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-all duration-200 ease-out overflow-hidden hover:scale-105 active:scale-95 group ${SIZES[size]} ${VARIANTS[variant]}`}
                 {...props}
             >
                 {selectedImage && preview ? (
@@ -89,7 +112,7 @@ export function ImageSelectorButton({
                 ) : (
                     <>
                         <div className="p-3 rounded-full bg-slate-800/80 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-colors">
-                            <svg className={`${iconSizes[size]} transition-transform duration-200 group-hover:scale-110`} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                            <svg className={`${ICON_SIZES[size]} transition-transform duration-200 group-hover:scale-110`} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                         </div>

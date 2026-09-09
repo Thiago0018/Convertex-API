@@ -23,6 +23,20 @@ type ClickableTextAsButton = BaseClickableTextProps &
 
 export type ClickableTextProps = ClickableTextAsAnchor | ClickableTextAsButton;
 
+const SIZES: Record<ClickableTextSize, string> = {
+    sm: "text-xs",
+    md: "text-sm",
+    lg: "text-base"
+};
+
+const VARIANTS: Record<ClickableTextVariant, string> = {
+    default: "text-[#749099] hover:text-slate-300",
+    primary: "text-blue-400 hover:text-blue-300",
+    secondary: "text-slate-400 hover:text-slate-200",
+    accent: "text-cyan-400 hover:text-cyan-300",
+    danger: "text-red-400 hover:text-red-300"
+};
+
 export function ClickableText(props: ClickableTextProps) {
     const {
         children,
@@ -32,35 +46,25 @@ export function ClickableText(props: ClickableTextProps) {
         className = '',
     } = props;
 
-    // Styles base para o texto ser interativo e responsivo
     const baseStyles = `inline-flex items-center gap-1.5 font-medium transition-all duration-200 cursor-pointer select-none active:opacity-70 ${underline ? 'hover:underline underline-offset-4' : ''
         }`;
 
-    // Tamanhos fortemente tipados
-    const sizes: Record<ClickableTextSize, string> = {
-        sm: "text-xs",
-        md: "text-sm",
-        lg: "text-base"
-    };
+    const combinedClasses = `${baseStyles} ${SIZES[size]} ${VARIANTS[variant]} ${className}`;
 
-    // Variações de cores fortemente tipadas
-    const variants: Record<ClickableTextVariant, string> = {
-        default: "text-[#749099] hover:text-slate-300",
-        primary: "text-blue-400 hover:text-blue-300",
-        secondary: "text-slate-400 hover:text-slate-200",
-        accent: "text-cyan-400 hover:text-cyan-300",
-        danger: "text-red-400 hover:text-red-300"
-    };
-
-    const combinedClasses = `${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`;
-
-    // 1. Se possuir 'href', o TypeScript entende que é o tipo ClickableTextAsAnchor
+    // 1. Rota de Renderização como Link (<a>)
     if ('href' in props && props.href) {
-        const { href, onClick, ...anchorProps } = props as ClickableTextAsAnchor;
+        const {
+            href,
+            variant: _v,
+            size: _s,
+            underline: _u,
+            className: _c,
+            ...anchorProps
+        } = props;
+
         return (
             <a
                 href={href}
-                onClick={onClick}
                 className={combinedClasses}
                 {...anchorProps}
             >
@@ -69,16 +73,23 @@ export function ClickableText(props: ClickableTextProps) {
         );
     }
 
-    // 2. Se não possuir 'href', o TypeScript trata estritamente como ClickableTextAsButton
-    const { onClick, type = 'button', ...buttonProps } = props as ClickableTextAsButton;
+    // 2. Rota de Renderização como Botão (<button>)
+    const {
+        type = 'button',
+        variant: _v,
+        size: _s,
+        underline: _u,
+        className: _c,
+        ...buttonProps
+    } = props as ClickableTextAsButton;
+
     return (
         <button
-            type={type}
-            onClick={onClick}
+            type={type as ComponentPropsWithoutRef<'button'>['type']}
             className={combinedClasses}
             {...buttonProps}
         >
             {children}
         </button>
     );
-}
+};

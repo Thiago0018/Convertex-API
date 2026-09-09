@@ -1,10 +1,8 @@
 import { ElementType, ComponentPropsWithoutRef, ReactNode, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// 1. Union das cores disponíveis
 export type DynamicLinkVariant = 'primary' | 'secondary' | 'accent' | 'danger';
 
-// 2. Props base do componente sem conflitos de tags
 interface BaseDynamicLinkTextProps {
     to?: string;
     children?: ReactNode;
@@ -13,10 +11,17 @@ interface BaseDynamicLinkTextProps {
     className?: string;
 }
 
-// 3. Tipo polimórfico genérico que combina a tag escolhida em 'as' com suas props nativas
 export type DynamicLinkTextProps<T extends ElementType = 'p'> = BaseDynamicLinkTextProps & {
     as?: T;
 } & Omit<ComponentPropsWithoutRef<T>, keyof BaseDynamicLinkTextProps | 'as'>;
+
+// Dicionário estático movido para FORA (alocação única de memória)
+const VARIANTS: Record<DynamicLinkVariant, string> = {
+    primary: "text-blue-400 hover:text-blue-300",
+    secondary: "text-slate-300 hover:text-white",
+    accent: "text-cyan-400 hover:text-cyan-300",
+    danger: "text-rose-400 hover:text-rose-300"
+};
 
 export function DynamicLinkText<T extends ElementType = 'p'>({
     as,
@@ -31,21 +36,18 @@ export function DynamicLinkText<T extends ElementType = 'p'>({
     const Component = as || 'p';
     const navigate = useNavigate();
 
-    // Dicionário de cores fortemente tipado com Record
-    const variants: Record<DynamicLinkVariant, string> = {
-        primary: "text-blue-400 hover:text-blue-300",
-        secondary: "text-slate-300 hover:text-white",
-        accent: "text-cyan-400 hover:text-cyan-300",
-        danger: "text-rose-400 hover:text-rose-300"
-    };
-
-    // Tipagem genérica adaptável do manipulador de clique
-    const handleClick = (event: MouseEvent<Element>) => {
-        if (onClick) {
-            (onClick as (e: MouseEvent<Element>) => void)(event);
+    const handleClick = (event: MouseEvent<HTMLOrSVGElement>) => {
+        // Dispara o onClick original passado pelas props
+        if (typeof onClick === 'function') {
+            (onClick as (e: MouseEvent<HTMLOrSVGElement>) => void)(event);
         }
 
-        if (to && !event.defaultPrevented) {
+        // Checa se o usuário pressionou Ctrl, Cmd, Alt ou Shift (para abrir em nova aba/janela)
+        const isModifiedClick = event.metaKey || event.altKey || event.ctrlKey || event.shiftKey;
+
+        // Só faz a navegação via SPA se o clique for simples e sem modificadores
+        if (to && !event.defaultPrevented && !isModifiedClick && event.button === 0) {
+            event.preventDefault();
             navigate(to);
         }
     };
@@ -58,7 +60,7 @@ export function DynamicLinkText<T extends ElementType = 'p'>({
                 transition-all duration-200 ease-out
                 hover:scale-105 active:scale-95
                 ${underline ? 'hover:underline underline-offset-4' : ''}
-                ${variants[variant]}
+                ${VARIANTS[variant]}
                 ${className}
             `}
             {...props}
