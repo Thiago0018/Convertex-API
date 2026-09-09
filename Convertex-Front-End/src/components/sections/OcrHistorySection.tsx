@@ -3,19 +3,32 @@ import { type OcrHistoryItem } from '../../service/ocrHistoryService';
 interface OcrHistorySectionProps {
     files: OcrHistoryItem[];
     onSelectFile: (item: OcrHistoryItem) => void;
+    onClearHistory: () => void;
 }
 
-// Estilos de badge e borda dinâmicos para cada extensão de arquivo
 const FORMAT_TAGS: Record<string, string> = {
     pdf: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
     docx: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
     txt: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
 };
 
-export function OcrHistorySection({ files, onSelectFile }: OcrHistorySectionProps) {
+export function OcrHistorySection({ files, onSelectFile, onClearHistory }: OcrHistorySectionProps) {
     return (
-        <aside className="bg-[#414853] min-h-60 w-65 flex flex-col items-start gap-1 p-5 rounded-2xl shadow md:mb-20 md:scale-80 ">
-            <h2 className="mb-2 text-xl font-bold text-white">Arquivos recentes</h2>
+        <aside className="bg-[#414853] min-h-60 w-65 flex flex-col items-start gap-1 p-5 rounded-2xl shadow md:mb-20 md:scale-80">
+            {/* CABEÇALHO DA SEÇÃO COM BOTÃO DE LIMPEZA */}
+            <div className="flex items-center justify-between w-full mb-2">
+                <h2 className="text-xl font-bold text-white">Arquivos recentes</h2>
+                {files.length > 0 && (
+                    <button
+                        type="button"
+                        onClick={onClearHistory}
+                        title="Limpar todo o histórico"
+                        className="text-slate-400 hover:text-rose-400 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    >
+                        Limpar
+                    </button>
+                )}
+            </div>
 
             <div className="w-full flex flex-col gap-2.5 overflow-y-auto max-h-80 pr-1">
                 {files.length === 0 ? (

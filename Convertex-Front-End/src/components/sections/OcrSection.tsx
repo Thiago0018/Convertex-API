@@ -10,14 +10,13 @@ export function OcrSection() {
         format,
         setFormat,
         loading,
-        message,
         isModalOpen,
         extractedText,
         executeOcr,
-        downloadFile,
         closeModal,
         recentFiles,
         openHistoryItem,
+        clearHistory,
     } = useOcr();
 
     return (
@@ -25,8 +24,6 @@ export function OcrSection() {
             {/* Seção Esquerda */}
             <div className="bg-[#414853] min-h-60 w-52 flex flex-col items-start gap-3 p-5 rounded-2xl shadow whitespace-nowrap md:mb-20">
                 <h2 className="mb-2 text-xl font-bold text-white">Formatos de saída</h2>
-
-                {/* CORREÇÃO AQUI: Passar o selectedFormat={format} */}
                 <FormatOption
                     selectedFormat={format}
                     onFormatChange={setFormat}
@@ -34,57 +31,36 @@ export function OcrSection() {
             </div>
 
             {/* Seção Central */}
-            <div className="bg-[#363e47] h-auto w-auto m-5 flex flex-col  items-center justify-center rounded-lg shrink-0 p-4 gap-4">
-
+            <div className="bg-[#363e47] h-auto w-auto m-5 flex flex-col items-center justify-center rounded-lg shrink-0 p-4 gap-4">
                 <ImageSelectorButton onImageSelect={(res) => setFile(res?.file ?? null)} />
 
-                {message && (
-
-                    <span className="text-xs font-bold text-amber-100 bg-amber-900/90 px-3 py-1 rounded border border-amber-700">
-
-                        {message}
-
-                    </span>
-                )}
-
                 <button
-
                     type="button"
-
                     onClick={executeOcr}
-
                     disabled={loading}
-
                     className={`cursor-pointer px-6 py-2.5 rounded-xl font-bold transition-all duration-200 shadow-lg ${loading
-
-                        ? 'bg-slate-700 cursor-not-allowed opacity-50'
-
-                        : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95 hover:scale-105'
-
+                            ? 'bg-slate-700 cursor-not-allowed opacity-50'
+                            : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95 hover:scale-105'
                         }`}
-
                 >
                     {loading ? 'Convertendo...' : 'CONVERTER'}
-
                 </button>
             </div>
 
-
-
-            {/* seção de arquivos recentes */}
+            {/* Seção de arquivos recentes */}
             <OcrHistorySection
                 files={recentFiles}
-                onSelectFile={openHistoryItem} />
+                onSelectFile={openHistoryItem}
+                onClearHistory={clearHistory}
+            />
 
-            {/*Janela de fluante do texto convertido*/}
+            {/* Janela flutuante do texto convertido */}
             <OcrResultModal
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 extractedText={extractedText}
-                onDownload={downloadFile}
                 format={format}
             />
-
         </main>
     );
 }

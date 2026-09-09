@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { imageService } from '../service/imageService';
 import { ocrHistoryService, type OcrHistoryItem } from '../service/ocrHistoryService';
 import type { FileFormat } from '../components/ui/FormatOption';
@@ -7,21 +8,19 @@ export function useOcr() {
     const [file, setFile] = useState<File | null>(null);
     const [format, setFormat] = useState<FileFormat>('txt');
     const [loading, setLoading] = useState<boolean>(false);
-    const [message, setMessage] = useState<string>('');
 
-    // Estados do Modal / Caixa Flutuante
+    // Estados do Modal
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [extractedText, setExtractedText] = useState<string>('');
-    const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
 
-    // Estado do Histórico de Arquivos Recentes
+    // Estado do Histórico
     const [recentFiles, setRecentFiles] = useState<OcrHistoryItem[]>(() =>
         ocrHistoryService.getRecentFiles()
     );
 
     const executeOcr = async () => {
         if (!file) {
-            setMessage('Selecione uma imagem.');
+            toast.error('Selecione uma imagem antes de converter.');
             return;
         }
 
@@ -35,18 +34,20 @@ export function useOcr() {
         );
 
         if (fileIsInRecentHistory) {
-            setMessage(`Este arquivo já foi convertido para .${currentFormat.toUpperCase()} no histórico recente.`);
+            toast('Este arquivo já foi convertido para este formato no histórico recente.', {
+                icon: 'ℹ️',
+            });
             return;
         }
 
+        const toastId = toast.loading('Processando imagem com OCR...');
+
         try {
             setLoading(true);
-            setMessage('Processando...');
 
             const result = await imageService.uploadToApi(file, format);
 
             setExtractedText(result.text);
-            setDownloadBlob(result.blobData);
 
             const updatedList = ocrHistoryService.addRecentFile({
                 fileName: file.name,
@@ -56,29 +57,26 @@ export function useOcr() {
             });
 
             setRecentFiles(updatedList);
-
             setIsModalOpen(true);
-            setMessage('Conversão concluída!');
+
+            toast.success('Imagem convertida com sucesso!', { id: toastId });
         } catch (error: any) {
-            setMessage(error.message || 'Erro ao processar imagem.');
+            toast.error(error.message || 'Erro ao processar imagem.', { id: toastId });
         } finally {
             setLoading(false);
         }
     };
 
-    const downloadFile = () => {
-        if (downloadBlob) {
-            imageService.triggerDownload(downloadBlob, format || 'txt');
-        }
-    };
-
     const openHistoryItem = (item: OcrHistoryItem) => {
-        const textBlob = new Blob([item.fullText], { type: 'text/plain;charset=utf-8' });
-
         setExtractedText(item.fullText);
-        setDownloadBlob(textBlob);
         setFormat(item.format as FileFormat);
         setIsModalOpen(true);
+    };
+
+    const clearHistory = () => {
+        ocrHistoryService.clearHistory();
+        setRecentFiles([]);
+        toast.success('Histórico recente limpo!');
     };
 
     const closeModal = () => setIsModalOpen(false);
@@ -89,13 +87,12 @@ export function useOcr() {
         format,
         setFormat,
         loading,
-        message,
         isModalOpen,
         extractedText,
         recentFiles,
         executeOcr,
-        downloadFile,
         openHistoryItem,
         closeModal,
+        clearHistory,
     };
 }
