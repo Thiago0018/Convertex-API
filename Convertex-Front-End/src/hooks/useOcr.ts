@@ -26,12 +26,16 @@ export function useOcr() {
         }
 
         const normalizedFileName = file.name.trim().toLowerCase();
+        const currentFormat = (format || 'txt').trim().toLowerCase();
+
         const fileIsInRecentHistory = recentFiles.some(
-            (item) => item.fileName.trim().toLowerCase() === normalizedFileName
+            (item) =>
+                item.fileName.trim().toLowerCase() === normalizedFileName &&
+                item.format.trim().toLowerCase() === currentFormat
         );
 
         if (fileIsInRecentHistory) {
-            setMessage('Este arquivo já está disponível no histórico recente.');
+            setMessage(`Este arquivo já foi convertido para .${currentFormat.toUpperCase()} no histórico recente.`);
             return;
         }
 
@@ -80,7 +84,6 @@ export function useOcr() {
     const closeModal = () => setIsModalOpen(false);
 
     return {
-        // Estados
         file,
         setFile,
         format,

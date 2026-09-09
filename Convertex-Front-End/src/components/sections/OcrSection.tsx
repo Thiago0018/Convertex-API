@@ -40,7 +40,7 @@ export function OcrSection() {
 
                 {message && (
 
-                    <span className="w-full max-w-xs whitespace-normal wrap-break-word text-center text-xs font-bold text-amber-100 bg-amber-900/90 px-3 py-1 rounded border border-amber-700">
+                    <span className="text-xs font-bold text-amber-100 bg-amber-900/90 px-3 py-1 rounded border border-amber-700">
 
                         {message}
 
