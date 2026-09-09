@@ -1,5 +1,4 @@
-import { useRef, useState, useEffect, type ButtonHTMLAttributes, type ChangeEvent } from 'react';
-import { imageService } from '../../service/imageService';
+import { useRef, useState, useEffect, type ButtonHTMLAttributes, type ChangeEvent, type DragEvent } from 'react';
 
 export interface ImageSelectedResult {
     file: File;
@@ -17,7 +16,6 @@ interface ImageSelectorButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonE
     variant?: ImageSelectorVariant;
 }
 
-// 1. Dicionários estáticos movidos para FORA do componente
 const SIZES: Record<ImageSelectorSize, string> = {
     md: 'w-48 h-48 text-sm',
     lg: 'w-64 h-64 text-base',
@@ -46,9 +44,9 @@ export function ImageSelectorButton({
     ...props
 }: ImageSelectorButtonProps) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // 2. Limpeza automática da memória RAM (revokeObjectURL)
     useEffect(() => {
         return () => {
             if (selectedImage) {
@@ -57,26 +55,56 @@ export function ImageSelectorButton({
         };
     }, [selectedImage]);
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const result = imageService.processImageSelection(event);
-
-        if (!result) {
+    // Função central para processar o arquivo (seja por clique ou drag & drop)
+    const handleProcessFile = (file: File | undefined) => {
+        if (!file) {
             setSelectedImage(null);
             onImageSelect(null);
             return;
         }
 
-        // Libera a imagem anterior da memória antes de atribuir a nova
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            alert('Por favor, selecione apenas arquivos PNG ou JPG.');
+            return;
+        }
+
         if (selectedImage) {
             URL.revokeObjectURL(selectedImage);
         }
 
-        setSelectedImage(result.imageUrl);
-        onImageSelect({ file: result.file, previewUrl: result.imageUrl });
+        const imageUrl = URL.createObjectURL(file);
+        setSelectedImage(imageUrl);
+        onImageSelect({ file, previewUrl: imageUrl });
+    };
+
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        handleProcessFile(file);
+    };
+
+    // --- Handlers de Drag and Drop ---
+    const handleDragOver = (event: DragEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!isDragging) setIsDragging(true);
+    };
+
+    const handleDragLeave = (event: DragEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (event: DragEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(false);
+
+        const droppedFile = event.dataTransfer.files?.[0];
+        handleProcessFile(droppedFile);
     };
 
     const handleButtonClick = () => {
-        // Reseta o valor do input para permitir selecionar o mesmo arquivo novamente se necessário
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
             fileInputRef.current.click();
@@ -96,7 +124,14 @@ export function ImageSelectorButton({
             <button
                 type="button"
                 onClick={handleButtonClick}
-                className={`relative rounded-2xl flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-all duration-200 ease-out overflow-hidden hover:scale-105 active:scale-95 group ${SIZES[size]} ${VARIANTS[variant]}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`relative rounded-2xl flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-all duration-200 ease-out overflow-hidden hover:scale-105 active:scale-95 group ${SIZES[size]
+                    } ${VARIANTS[variant]} ${isDragging
+                        ? 'border-blue-400! bg-blue-950/40! scale-105! ring-4 ring-blue-500/30'
+                        : ''
+                    }`}
                 {...props}
             >
                 {selectedImage && preview ? (
@@ -111,13 +146,18 @@ export function ImageSelectorButton({
                     </>
                 ) : (
                     <>
-                        <div className="p-3 rounded-full bg-slate-800/80 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-colors">
-                            <svg className={`${ICON_SIZES[size]} transition-transform duration-200 group-hover:scale-110`} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <div className={`p-3 rounded-full transition-colors ${isDragging ? 'bg-blue-500 text-white' : 'bg-slate-800/80 group-hover:bg-blue-600/20 group-hover:text-blue-400'
+                            }`}>
+                            <svg className={`${ICON_SIZES[size]} transition-transform duration-200 ${isDragging ? 'scale-125' : 'group-hover:scale-110'}`} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <span className="font-semibold text-center leading-tight">{label}</span>
-                        <span className="text-xs text-slate-500 font-normal group-hover:text-slate-400">PNG ou JPG</span>
+                        <span className="font-semibold text-center leading-tight">
+                            {isDragging ? 'Solte a imagem aqui' : label}
+                        </span>
+                        <span className="text-xs text-slate-500 font-normal group-hover:text-slate-400">
+                            {isDragging ? 'PNG ou JPG' : 'Clique ou arraste aqui (PNG ou JPG)'}
+                        </span>
                     </>
                 )}
             </button>
