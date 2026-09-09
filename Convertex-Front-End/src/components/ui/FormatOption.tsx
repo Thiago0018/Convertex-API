@@ -1,43 +1,62 @@
-export type FileFormat = 'pdf' | 'docx' | 'txt' | '';
+import type { Dispatch, SetStateAction } from 'react';
+
+export type FileFormat = 'txt' | 'docx' | 'pdf';
 
 interface FormatOptionProps {
     selectedFormat: FileFormat;
-    onFormatChange: (format: FileFormat) => void;
+    onFormatChange: Dispatch<SetStateAction<FileFormat>>;
 }
 
-const FORMAT_OPTIONS: { id: FileFormat; label: string }[] = [
-    { id: 'pdf', label: 'PDF' },
-    { id: 'docx', label: 'DOCX' },
-    { id: 'txt', label: 'TXT' },
-];
-
 export function FormatOption({ selectedFormat, onFormatChange }: FormatOptionProps) {
-    const handleToggle = (format: FileFormat) => {
-        // Se clicar no que já está selecionado, desmarca. Caso contrário, seleciona o novo.
-        const nextFormat = selectedFormat === format ? '' : format;
-        onFormatChange(nextFormat);
-    };
+    const formats: { id: FileFormat; label: string }[] = [
+        { id: 'txt', label: 'Texto (.txt)' },
+        { id: 'docx', label: 'Word (.docx)' },
+        { id: 'pdf', label: 'PDF (.pdf)' },
+    ];
 
     return (
-        <div className="flex flex-col w-full gap-3 font-medium">
-            {FORMAT_OPTIONS.map((option) => (
-                <label
-                    key={option.id}
-                    onClick={() => handleToggle(option.id)}
-                    className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer select-none ${selectedFormat === option.id
-                        ? 'bg-slate-800 border-blue-500/80 text-white shadow-md'
-                        : 'bg-slate-900/50 border-slate-700/60 text-slate-300 hover:border-slate-500 hover:text-white opacity-70'
-                        }`}
-                >
-                    <input
-                        type="checkbox"
-                        checked={selectedFormat === option.id}
-                        onChange={() => { }} // Tratado no onClick do label para melhor UX
-                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-500"
-                    />
-                    <span className="text-sm font-semibold">{option.label}</span>
-                </label>
-            ))}
+        <div className="flex flex-col gap-2.5 w-full">
+            {formats.map((fmt) => {
+                const isSelected = selectedFormat === fmt.id;
+
+                return (
+                    <button
+                        key={fmt.id}
+                        type="button"
+                        onClick={() => onFormatChange(fmt.id)} // <- O clique agora é capturado no botão inteiro
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-sm font-medium transition-all duration-200 cursor-pointer select-none ${isSelected
+                            ? 'bg-blue-600/20 border-blue-500 text-white shadow-md shadow-blue-500/10'
+                            : 'bg-slate-800/60 border-slate-700/60 text-slate-400 hover:bg-slate-800 hover:border-slate-600 hover:text-slate-200'
+                            }`}
+                    >
+                        {/* Indicador Checkbox Personalizado */}
+                        <div
+                            className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isSelected
+                                ? 'bg-blue-500 border-blue-500 text-white'
+                                : 'border-slate-500 bg-slate-900/50'
+                                }`}
+                        >
+                            {isSelected && (
+                                <svg
+                                    className="w-3 h-3 stroke-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            )}
+                        </div>
+
+                        {/* Rótulo do Formato */}
+                        <span>{fmt.label}</span>
+                    </button>
+                );
+            })}
         </div>
     );
 }

@@ -1,5 +1,4 @@
 import { ClickableText } from '../ui/ClickableText';
-import { Avatar } from '../ui/Avatar';
 import { DynamicLinkText } from '../ui/DynamicLinkText';
 import { useState } from 'react';
 

@@ -25,7 +25,6 @@ export function OcrSection() {
             {/*  SEÇÃO ESQUERDA: Formatos de Saída  */}
             <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 min-h-60 w-full md:w-56 flex flex-col items-start gap-4 p-6 rounded-2xl shadow-2xl transition-all duration-300 hover:border-slate-600/60 md:mb-12">
                 <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
                     <h2 className="text-lg font-bold text-slate-100 tracking-wide">Formatos</h2>
                 </div>
 
