@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, ChangeEvent } from 'react';
 
 interface OcrResultModalProps {
     isOpen: boolean;
     onClose: () => void;
     extractedText: string;
-    onDownload: () => void;
     format: string;
 }
 
@@ -12,11 +11,17 @@ export function OcrResultModal({
     isOpen,
     onClose,
     extractedText,
-    onDownload,
     format,
 }: OcrResultModalProps) {
+    const [text, setText] = useState<string>(extractedText);
     const [copied, setCopied] = useState<boolean>(false);
 
+    // Sincroniza o estado interno sempre que o modal abre ou a prop extractedText muda
+    useEffect(() => {
+        setText(extractedText);
+    }, [extractedText, isOpen]);
+
+    // Suporte ao atalho Tecla ESC para fechar
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -25,16 +30,41 @@ export function OcrResultModal({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, onClose]);
 
+    // Cálculo otimizado do contador de palavras e caracteres
+    const { wordCount, charCount } = useMemo(() => {
+        const trimmedText = text.trim();
+        const charCount = text.length;
+        const wordCount = trimmedText === '' ? 0 : trimmedText.split(/\s+/).length;
+        return { wordCount, charCount };
+    }, [text]);
+
     if (!isOpen) return null;
+
+    const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        setText(e.target.value);
+    };
 
     const handleCopy = async () => {
         try {
-            await navigator.clipboard.writeText(extractedText);
+            await navigator.clipboard.writeText(text);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Erro ao copiar texto:', err);
         }
+    };
+
+    const handleDownloadEditedText = () => {
+        // Cria um Blob atualizado com o texto editado pelo usuário
+        const updatedBlob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const downloadUrl = window.URL.createObjectURL(updatedBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.setAttribute('download', `ocr-resultado-editado.${format || 'txt'}`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
     };
 
     return (
@@ -60,9 +90,24 @@ export function OcrResultModal({
                     </button>
                 </div>
 
-                {/* Área do Conteúdo */}
-                <div className="p-4 flex-1 overflow-y-auto bg-slate-950/50 font-mono text-sm text-slate-200 whitespace-pre-wrap select-text leading-relaxed">
-                    {extractedText || 'Nenhum texto identificado.'}
+                {/* Toolbar Superior: Métricas / Contador */}
+                <div className="bg-slate-950/60 px-4 py-2 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                    <span className="font-medium">Edite o texto extraído abaixo antes de copiar ou baixar</span>
+                    <div className="flex items-center gap-3 font-mono">
+                        <span><strong className="text-blue-400">{wordCount}</strong> palavras</span>
+                        <span>•</span>
+                        <span><strong className="text-cyan-400">{charCount}</strong> caracteres</span>
+                    </div>
+                </div>
+
+                {/* Área de Edição (Textarea) */}
+                <div className="p-4 flex-1 bg-slate-950/50 flex flex-col min-h-75">
+                    <textarea
+                        value={text}
+                        onChange={handleTextChange}
+                        placeholder="Nenhum texto identificado..."
+                        className="w-full h-full flex-1 bg-transparent border-0 font-mono text-sm text-slate-200 focus:outline-none resize-none leading-relaxed select-text placeholder:text-slate-600"
+                    />
                 </div>
 
                 {/* Rodapé de Ações */}
@@ -85,7 +130,7 @@ export function OcrResultModal({
                         </button>
                         <button
                             type="button"
-                            onClick={onDownload}
+                            onClick={handleDownloadEditedText}
                             className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20 active:scale-95 cursor-pointer"
                         >
                             Baixar .{format || 'txt'}
