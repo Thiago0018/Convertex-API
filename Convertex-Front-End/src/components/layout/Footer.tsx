@@ -13,8 +13,8 @@ export function Footer() {
                 <div className="flex items-center gap-2 sm:ml-4">
 
                     <SocialIconButton href="https://github.com/Thiago0018/" icon="github" size="sm" />
-                    <SocialIconButton href="https://www.linkedin.com/in/seu-usuario" icon="linkedin" size="sm" />
-                    <SocialIconButton href="mailto:seu.email@exemplo.com" icon="gmail" size="sm" />
+                    <SocialIconButton href="https://www.linkedin.com/in/thiago-souza0018/" icon="linkedin" size="sm" />
+                    <SocialIconButton href="thiago.dev.0018@gmail.com" icon="gmail" size="sm" />
 
                 </div>
             </div>

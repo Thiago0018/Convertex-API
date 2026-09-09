@@ -5,7 +5,6 @@ export interface OcrHistoryItem {
     textPreview: string;
     fullText: string;
     timestamp: string;
-    fileUrl?: string;
 }
 
 const STORAGE_KEY = '@ocr_app:recent_files';
@@ -24,6 +23,18 @@ export const ocrHistoryService = {
 
     addRecentFile(newItem: Omit<OcrHistoryItem, 'id' | 'timestamp'>): OcrHistoryItem[] {
         const currentList = this.getRecentFiles();
+        const normalizedFileName = newItem.fileName.trim().toLowerCase();
+        const normalizedFormat = newItem.format.trim().toLowerCase();
+
+        const alreadyExists = currentList.some(
+            (item) =>
+                item.fileName.trim().toLowerCase() === normalizedFileName &&
+                item.format.trim().toLowerCase() === normalizedFormat
+        );
+
+        if (alreadyExists) {
+            return currentList;
+        }
 
         const createdItem: OcrHistoryItem = {
             ...newItem,

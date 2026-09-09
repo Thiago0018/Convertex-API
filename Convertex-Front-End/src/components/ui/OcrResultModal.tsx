@@ -5,8 +5,7 @@ interface OcrResultModalProps {
     onClose: () => void;
     extractedText: string;
     onDownload: () => void;
-    format: string; // 'pdf', 'docx', 'doc', 'txt'
-    fileUrl?: string; // Veio do Hook (URL do Blob ou URL pública)
+    format: string;
 }
 
 export function OcrResultModal({
@@ -15,7 +14,6 @@ export function OcrResultModal({
     extractedText,
     onDownload,
     format,
-    fileUrl,
 }: OcrResultModalProps) {
     const [copied, setCopied] = useState<boolean>(false);
 
@@ -39,18 +37,10 @@ export function OcrResultModal({
         }
     };
 
-    const normalizedFormat = format?.toLowerCase();
-
-    // URL do visualizador da Microsoft (para Word via web)
-    const isPublicUrl = fileUrl?.startsWith('http://') || fileUrl?.startsWith('https://');
-    const officeViewerUrl = isPublicUrl && fileUrl
-        ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`
-        : undefined;
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
             {/* Modal Container */}
-            <div className="bg-slate-900 border border-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col h-[85vh] overflow-hidden">
+            <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-slate-800">
@@ -70,41 +60,9 @@ export function OcrResultModal({
                     </button>
                 </div>
 
-                {/* Área do Conteúdo / Visualizador */}
-                <div className="flex-1 overflow-hidden bg-slate-950 flex flex-col justify-center items-center relative">
-
-                    {/* 1. VISUALIZADOR DE PDF */}
-                    {normalizedFormat === 'pdf' && fileUrl && (
-                        <iframe
-                            src={fileUrl}
-                            className="w-full h-full border-none"
-                            title="Visualizador de PDF"
-                        />
-                    )}
-
-                    {/* 2. VISUALIZADOR DE WORD (.doc / .docx público) */}
-                    {(normalizedFormat === 'docx' || normalizedFormat === 'doc') && officeViewerUrl && (
-                        <iframe
-                            src={officeViewerUrl}
-                            className="w-full h-full border-none bg-white"
-                            title="Visualizador do Word"
-                        />
-                    )}
-
-                    {/* 3. VISUALIZADOR DE WORD / TEXTO (Documento Formatado Estilo Word) */}
-                    {((normalizedFormat === 'docx' || normalizedFormat === 'doc') && !officeViewerUrl || normalizedFormat === 'txt') && (
-                        <div className="w-full h-full p-8 overflow-y-auto bg-slate-950 flex justify-center">
-                            {/* Folha estilo A4 / Word */}
-                            <div className="w-full max-w-2xl bg-white text-slate-900 p-8 md:p-12 rounded-sm shadow-xl min-h-[90%] font-sans leading-relaxed text-base select-text">
-                                {extractedText ? (
-                                    <div className="whitespace-pre-wrap">{extractedText}</div>
-                                ) : (
-                                    <p className="text-slate-400 italic">Nenhum texto identificado no documento.</p>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
+                {/* Área do Conteúdo */}
+                <div className="p-4 flex-1 overflow-y-auto bg-slate-950/50 font-mono text-sm text-slate-200 whitespace-pre-wrap select-text leading-relaxed">
+                    {extractedText || 'Nenhum texto identificado.'}
                 </div>
 
                 {/* Rodapé de Ações */}

@@ -13,7 +13,6 @@ export function useOcr() {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [extractedText, setExtractedText] = useState<string>('');
     const [downloadBlob, setDownloadBlob] = useState<Blob | null>(null);
-    const [fileUrl, setFileUrl] = useState<string | undefined>(undefined);
 
     // Estado do Histórico de Arquivos Recentes
     const [recentFiles, setRecentFiles] = useState<OcrHistoryItem[]>(() =>
@@ -26,6 +25,16 @@ export function useOcr() {
             return;
         }
 
+        const normalizedFileName = file.name.trim().toLowerCase();
+        const fileIsInRecentHistory = recentFiles.some(
+            (item) => item.fileName.trim().toLowerCase() === normalizedFileName
+        );
+
+        if (fileIsInRecentHistory) {
+            setMessage('Este arquivo já está disponível no histórico recente.');
+            return;
+        }
+
         try {
             setLoading(true);
             setMessage('Processando...');
@@ -35,11 +44,14 @@ export function useOcr() {
             setExtractedText(result.text);
             setDownloadBlob(result.blobData);
 
-            // Cria uma URL temporária a partir do Blob retornado pela API para o modal exibir
-            if (result.blobData) {
-                const objectUrl = URL.createObjectURL(result.blobData);
-                setFileUrl(objectUrl);
-            }
+            const updatedList = ocrHistoryService.addRecentFile({
+                fileName: file.name,
+                format: format || 'txt',
+                textPreview: result.text.substring(0, 80),
+                fullText: result.text,
+            });
+
+            setRecentFiles(updatedList);
 
             setIsModalOpen(true);
             setMessage('Conversão concluída!');
@@ -53,16 +65,6 @@ export function useOcr() {
     const downloadFile = () => {
         if (downloadBlob) {
             imageService.triggerDownload(downloadBlob, format || 'txt');
-
-            const updatedList = ocrHistoryService.addRecentFile({
-                fileName: file?.name || `ocr-resultado.${format || 'txt'}`,
-                format: format || 'txt',
-                textPreview: extractedText.substring(0, 80),
-                fullText: extractedText,
-                fileUrl: fileUrl,
-            });
-
-            setRecentFiles(updatedList);
         }
     };
 
@@ -72,9 +74,6 @@ export function useOcr() {
         setExtractedText(item.fullText);
         setDownloadBlob(textBlob);
         setFormat(item.format as FileFormat);
-
-        // Se o item do histórico já possuir URL ou Blob recuperado
-        setFileUrl(item.fileUrl || URL.createObjectURL(textBlob));
         setIsModalOpen(true);
     };
 
@@ -90,7 +89,6 @@ export function useOcr() {
         message,
         isModalOpen,
         extractedText,
-        fileUrl,
         recentFiles,
         executeOcr,
         downloadFile,

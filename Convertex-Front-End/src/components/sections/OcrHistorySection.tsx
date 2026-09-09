@@ -47,7 +47,7 @@ export function OcrHistorySection({ files, onSelectFile }: OcrHistorySectionProp
                                 )}
 
                                 <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-800/80 w-full">
-                                    <span>Baixado às {item.timestamp}</span>
+                                    <span>Convertido às {item.timestamp}</span>
                                     <span className="text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Reabrir →</span>
                                 </div>
                             </button>

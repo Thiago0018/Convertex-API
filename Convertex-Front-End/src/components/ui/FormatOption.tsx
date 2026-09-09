@@ -26,7 +26,7 @@ export function FormatOption({ selectedFormat, onFormatChange }: FormatOptionPro
                     onClick={() => handleToggle(option.id)}
                     className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer select-none ${selectedFormat === option.id
                         ? 'bg-slate-800 border-blue-500/80 text-white shadow-md'
-                        : 'bg-slate-900/50 border-slate-700/60 text-slate-300 hover:border-slate-500 hover:text-white'
+                        : 'bg-slate-900/50 border-slate-700/60 text-slate-300 hover:border-slate-500 hover:text-white opacity-70'
                         }`}
                 >
                     <input
