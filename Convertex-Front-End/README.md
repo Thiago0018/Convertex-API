@@ -16,11 +16,11 @@
 
 ---
 
-## 📌 Sobre o Projeto
+## Sobre o Projeto
 
 O **Convertex** é uma aplicação web SPA (*Single Page Application*) desenvolvida para facilitar a conversão de imagens (PNG/JPG) em texto legível e manipulável. A interface permite selecionar ou arrastar imagens, escolher o formato de saída desejado e gerenciar o histórico recente de conversões diretamente no navegador.
 
-### ✨ Principais Funcionalidades
+### Principais Funcionalidades
 
 - 📤 **Upload Intuitivo & Drag and Drop:** Selecione ou arraste imagens diretamente para a área de envio com feedback visual imediato.
 - ⚙️ **Formatos de Saída Flexíveis:** Escolha a exportação do resultado nos formatos `.txt`, `.docx` ou `.pdf`.
@@ -59,3 +59,52 @@ src/
 ├── service/             # Infraestrutura, integração com API REST e storage (api, imageService, ocrHistoryService)
 ├── App.tsx              # Componente raiz com provedores e Toaster
 └── main.tsx             # Ponto de entrada da aplicação React
+
+---
+
+## Como Executar o Projeto Localmente
+
+### Pré-requisitos
+
+Certifique-se de ter o **Node.js** (versão 18 ou superior) e o **npm** instalados em sua máquina.
+
+### Passo a Passo
+
+1. **Clone o repositório:**
+
+git clone [https://github.com/Thiago0018/Convertex-Front-End.git](https://github.com/Thiago0018/Convertex-Front-End.git)
+cd Convertex-Front-End
+
+1. Instale as dependências:
+npm install
+
+2. Configure as variáveis de ambiente:
+Crie um arquivo .env na raiz do projeto com o endereço da API REST (Back-end .NET):
+
+VITE_API_URL=[https://convertex-api.onrender.com/api](https://convertex-api.onrender.com/api)
+
+3. Execute o serviço de desenvolvimento:
+npm run dev
+
+4. Acesse no navegador:
+Acesse o endereço local exibido no terminal (geralmente http://localhost:5173).
+
+📄 Scripts Disponíveis
+npm run dev: Inicia o servidor de desenvolvimento com Vite.
+
+npm run build: Compila a aplicação para produção.
+
+npm run preview: Executa a build de produção localmente para inspeção.
+
+npm run lint: Executa a verificação do ESLint para análise estática do código.
+
+👤 Autor
+Desenvolvido por Thiago de Souza
+
+Entre em contato ou acesse minhas redes:
+
+LinkedIn: Thiago Souza
+
+GitHub: @Thiago0018
+
+E-mail: thiago.dev.0018@gmail.com
