@@ -2,28 +2,22 @@ import { api } from './api';
 import axios from 'axios';
 import type { ChangeEvent } from 'react';
 
-// Contrato para seleção local da imagem
+export type FileFormat = 'txt' | 'json' | 'csv' | 'docx' | 'pdf';
+
 export interface ImageSelectionResult {
     file: File;
     imageUrl: string;
 }
 
-// Contrato (DTO) de resposta do processamento OCR
 export interface OcrExtractionResult {
-    text: string;      // Texto string legível para a caixa flutuante / cópia
-    blobData: Blob;    // Bytes originais do arquivo retornado para download opcional
+    text: string;      // Texto legível formatado para o modal/textarea
+    blobData: Blob;    // Bytes compilados retornados pela API .NET
 }
 
 export const imageService = {
-    /**
-     * Captura o arquivo do input tipo file e gera a URL de preview
-     */
     processImageSelection(event: ChangeEvent<HTMLInputElement>): ImageSelectionResult | null {
         const file = event.target.files?.[0];
-
-        if (!file) {
-            return null;
-        }
+        if (!file) return null;
 
         return {
             file,
@@ -31,51 +25,52 @@ export const imageService = {
         };
     },
 
-    /**
-     * Realiza o envio da imagem para a API e trata a resposta/erros da rede
-     */
-    async uploadToApi(file: File, format: string): Promise<OcrExtractionResult> {
+    async uploadToApi(file: File, format: FileFormat): Promise<OcrExtractionResult> {
         try {
             const formData = new FormData();
             formData.append('file', file);
 
+            // Requisita a versão binária ou formatada do arquivo selecionado
             const response = await api.post<Blob>('/ocr/extract', formData, {
                 params: { format },
                 responseType: 'blob',
             });
 
             const blobData = response.data;
-            // Converte os bytes do Blob para string sem precisar de nova requisição
-            const text = await blobData.text();
+            let text = '';
 
-            return {
-                text,
-                blobData,
-            };
+            if (format === 'docx' || format === 'pdf') {
+                // Para DOCX e PDF, fazemos uma chamada em TXT para exibir o conteúdo legível na tela
+                const textResponse = await api.post<Blob>('/ocr/extract', formData, {
+                    params: { format: 'txt' },
+                    responseType: 'blob',
+                });
+                text = await textResponse.data.text();
+            } else {
+                text = await blobData.text();
+            }
+
+            return { text, blobData };
         } catch (error) {
-            // Tratamento de erros centralizado na infraestrutura
             if (axios.isAxiosError(error)) {
                 if (!error.response) {
-                    throw new Error('Não foi possível conectar à API.');
+                    throw new Error('Não foi possível conectar à API do Convertex.');
                 }
                 if (error.response.data instanceof Blob) {
                     const errorMessage = await error.response.data.text();
-                    throw new Error(errorMessage);
+                    throw new Error(errorMessage || 'A API recusou a conversão.');
                 }
-                throw new Error(error.response.data?.message || 'A API recusou a conversão.');
+                throw new Error(error.response.data?.message || 'Erro no processamento da imagem.');
             }
             throw new Error('Erro inesperado ao converter a imagem.');
         }
     },
 
-    /**
-     * Utilitário DOM para disparar o download do arquivo no navegador do usuário
-     */
-    triggerDownload(blobData: Blob, format: string): void {
+    triggerDownload(blobData: Blob, format: FileFormat): void {
         const downloadUrl = window.URL.createObjectURL(blobData);
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.setAttribute('download', `ocr-resultado.${format || 'txt'}`);
+        link.setAttribute('download', `resultado-ocr.${format}`);
         document.body.appendChild(link);
         link.click();
         link.remove();

@@ -1,19 +1,16 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { imageService } from '../service/imageService';
+import { imageService, type FileFormat } from '../service/imageService';
 import { ocrHistoryService, type OcrHistoryItem } from '../service/ocrHistoryService';
-import type { FileFormat } from '../components/ui/FormatOption';
 
 export function useOcr() {
     const [file, setFile] = useState<File | null>(null);
     const [format, setFormat] = useState<FileFormat>('txt');
     const [loading, setLoading] = useState<boolean>(false);
 
-    // Estados do Modal
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [extractedText, setExtractedText] = useState<string>('');
 
-    // Estado do Histórico
     const [recentFiles, setRecentFiles] = useState<OcrHistoryItem[]>(() =>
         ocrHistoryService.getRecentFiles()
     );
