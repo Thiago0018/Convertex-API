@@ -14,7 +14,7 @@ export function Footer() {
 
                     <SocialIconButton href="https://github.com/Thiago0018/" icon="github" size="sm" />
                     <SocialIconButton href="https://www.linkedin.com/in/thiago-souza0018/" icon="linkedin" size="sm" />
-                    <SocialIconButton href="thiago.dev.0018@gmail.com" icon="gmail" size="sm" />
+                    <SocialIconButton href="mailto:thiago.dev.0018@gmail.com" icon="gmail" size="sm" />
 
                 </div>
             </div>
