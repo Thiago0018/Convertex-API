@@ -2,6 +2,7 @@ using MeuProjetoVision.Integrations;
 using MeuProjetoVision.Services;
 using StackExchange.Redis;
 using MeuProjetoVision.Extensions;
+using Convertex_API.Services.ImageFormatConversionService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,7 @@ else
 }
 
 builder.Services.AddScoped<IOcrService, OcrService>();
+builder.Services.AddScoped<IImageConversionService, ImageConversionService>();
 
 var app = builder.Build();
 
